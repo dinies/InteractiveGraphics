@@ -13,11 +13,17 @@ var yAxis = 1;
 var zAxis = 2;
 var precedent_axis;
 var slider_value=5;
+var x_transl_value =0;
+var y_transl_value =0;
+var z_transl_value =0;
 
 var axis = 0;
 var theta = [ 0, 0, 0 ];
 
 var thetaLoc;
+
+var transl = [ 0, 0, 0 ];
+var transl_vec;
 
 window.onload = function init()
 {
@@ -58,6 +64,10 @@ window.onload = function init()
 
     thetaLoc = gl.getUniformLocation(program, "theta");
 
+    transl_vec = gl.getUniformLocation(program, "transl");
+
+
+
     //event listeners for buttons
 
     document.getElementById( "xButton" ).onclick = function () {
@@ -70,8 +80,6 @@ window.onload = function init()
         axis = zAxis;
     };
       document.getElementById( "Stop" ).onclick = function () {
-        
-
         if (axis== null) {
             axis= precedent_axis;
         } 
@@ -83,6 +91,18 @@ window.onload = function init()
 
     document.getElementById("slide").onchange = function() {
         slider_value = parseInt(event.srcElement.value); 
+    };
+     document.getElementById("x-transl").onchange = function() {
+        x_transl_value = parseInt(event.srcElement.value);
+        transl[0]=x_transl_value;
+    };
+     document.getElementById("y-transl").onchange = function() {
+        y_transl_value = parseInt(event.srcElement.value);
+        transl[1]=y_transl_value;
+    };
+     document.getElementById("z-transl").onchange = function() {
+        z_transl_value = parseInt(event.srcElement.value);
+        transl[2]=z_transl_value; 
     };
 
 
@@ -146,7 +166,9 @@ function render()
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     theta[axis] += slider_value;
+
     gl.uniform3fv(thetaLoc, theta);
+    gl.uniform3fv(transl_vec, transl);
 
     gl.drawArrays( gl.TRIANGLES, 0, NumVertices );
 

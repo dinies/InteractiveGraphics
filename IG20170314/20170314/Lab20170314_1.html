@@ -8,6 +8,7 @@ attribute  vec4 vColor;
 varying vec4 fColor;
 
 uniform vec3 theta;
+uniform vec3 transl;
 
 void main()
 {
@@ -19,23 +20,28 @@ void main()
 
     // Remeber: thse matrices are column-major
     mat4 rx = mat4( 1.0,  0.0,  0.0, 0.0,
-		    0.0,  c.x,  s.x, 0.0,
-		    0.0, -s.x,  c.x, 0.0,
-		    0.0,  0.0,  0.0, 1.0 );
+		            0.0,  c.x,  s.x, 0.0,
+		            0.0, -s.x,  c.x, 0.0,
+		            0.0,  0.0,  0.0, 1.0 );
 
     mat4 ry = mat4( c.y, 0.0, -s.y, 0.0,
-		    0.0, 1.0,  0.0, 0.0,
-		    s.y, 0.0,  c.y, 0.0,
-		    0.0, 0.0,  0.0, 1.0 );
+		            0.0, 1.0,  0.0, 0.0,
+		            s.y, 0.0,  c.y, 0.0,
+		            0.0, 0.0,  0.0, 1.0 );
 
 
-    mat4 rz = mat4( c.z, s.z, 0.0, 0.0,
-		    -s.z,  c.z, 0.0, 0.0,
-		    0.0,  0.0, 1.0, 0.0,
-		    0.0,  0.0, 0.0, 1.0 );
+    mat4 rz = mat4(  c.z, s.z, 0.0, 0.0,
+		           -s.z,  c.z, 0.0, 0.0,
+		            0.0,  0.0, 1.0, 0.0,
+		            0.0,  0.0, 0.0, 1.0 );
+
+    mat4 rt = mat4( 1.0,  0.0,  0.0, 0.0,
+                    0.0,  1.0,  0.0, 0.0,
+                    0.0,  0.0,  1.0, 0.0,
+                    transl.x,  transl.y,  transl.z, 1.0 );
 
     fColor = vColor;
-    gl_Position = rz * ry * rx * vPosition;
+    gl_Position = rt * rz * ry * rx * vPosition;
     gl_Position.z = -gl_Position.z;
 }
 </script>
@@ -66,6 +72,19 @@ Oops ... your browser doesn't support the HTML5 canvas element
 <div>
 Angle 0 <input id="slide" type="range"
    min="0" max="10" step="1" value="5" />
+10
+</div>
+<div>
+translation on X: 0 <input id="x-transl" type="range"
+   min="0" max="10" step="1" value="0" />
+10
+</div><div>
+translation on Y: 0 <input id="y-transl" type="range"
+   min="0" max="10" step="1" value="0" />
+10
+</div><div>
+translation on Z: 0 <input id="z-transl" type="range"
+   min="0" max="10" step="1" value="0" />
 10
 </div>
 
