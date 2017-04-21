@@ -82,7 +82,7 @@ window.onload = function init()
       document.getElementById( "Stop" ).onclick = function () {
         if (axis== null) {
             axis= precedent_axis;
-        } 
+        }
         else {
             precedent_axis= axis;
             axis = null;
@@ -90,7 +90,7 @@ window.onload = function init()
     };
 
     document.getElementById("slide").onchange = function() {
-        slider_value = parseInt(event.srcElement.value); 
+        slider_value = parseInt(event.srcElement.value);
     };
      document.getElementById("x-transl").onchange = function() {
         x_transl_value = parseInt(event.srcElement.value);
@@ -102,7 +102,7 @@ window.onload = function init()
     };
      document.getElementById("z-transl").onchange = function() {
         z_transl_value = parseInt(event.srcElement.value);
-        transl[2]=z_transl_value; 
+        transl[2]=z_transl_value;
     };
 
 
