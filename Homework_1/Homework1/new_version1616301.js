@@ -46,7 +46,6 @@ var image2 = new Uint8Array(4*texSize*texSize);
     }
 
 var pointsArray = [];
-var normalsArray= [];
 var colorsArray = [];
 var texCoordsArray = [];
 
@@ -87,19 +86,6 @@ var axis = xAxis;
 var theta = [45.0, 45.0, 45.0];
 
 var thetaLoc;
-// LIGHTS
-
-//positional_light values
-var positional_light_Position = vec4(1.0, 1.0, 1.0, 0.0 );
-var positional_light_Ambient = vec4(1.0, 1.0, 1.0, 1.0 );
-var positional_light_Diffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
-var positional_light_Specular = vec4( 1.0, 1.0, 1.0, 1.0 );
-//material specs
-var materialAmbient = vec4( 1.0, 0.0, 1.0, 1.0 );
-var materialDiffuse = vec4( 1.0, 0.8, 0.0, 1.0);
-var materialSpecular = vec4( 1.0, 0.8, 0.0, 1.0 );
-var materialShininess = 100.0;
-
 
 function configureTexture() {
     texture1 = gl.createTexture();
@@ -122,44 +108,27 @@ function configureTexture() {
 }
 
 function quad(a, b, c, d) {
-
-
-    var t1 = subtract(vertices[b], vertices[a]);
-     var t2 = subtract(vertices[c], vertices[b]);
-     var normal = cross(t1, t2);
-     var normal = vec3(normal);
-     normal = normalize(normal);
-
-
-
-
      pointsArray.push(vertices[a]);
-     normalsArray.push(normal);
      colorsArray.push(vertexColors[a]);
      texCoordsArray.push(texCoord[0]);
 
      pointsArray.push(vertices[b]);
-     normalsArray.push(normal);
      colorsArray.push(vertexColors[a]);
      texCoordsArray.push(texCoord[1]);
 
      pointsArray.push(vertices[c]);
-     normalsArray.push(normal);
      colorsArray.push(vertexColors[a]);
      texCoordsArray.push(texCoord[2]);
 
      pointsArray.push(vertices[a]);
-     normalsArray.push(normal);
      colorsArray.push(vertexColors[a]);
      texCoordsArray.push(texCoord[0]);
 
      pointsArray.push(vertices[c]);
-     normalsArray.push(normal);
      colorsArray.push(vertexColors[a]);
      texCoordsArray.push(texCoord[2]);
 
      pointsArray.push(vertices[d]);
-     normalsArray.push(normal);
      colorsArray.push(vertexColors[a]);
      texCoordsArray.push(texCoord[3]);
 }
@@ -199,17 +168,6 @@ window.onload = function init() {
     gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
     gl.bufferData( gl.ARRAY_BUFFER, flatten(colorsArray), gl.STATIC_DRAW );
 
-    //normals
-    var nBuffer = gl.createBuffer();
-    gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer );
-    gl.bufferData( gl.ARRAY_BUFFER, flatten(normalsArray), gl.STATIC_DRAW );
-
-
-    var vNormal = gl.getAttribLocation( program, "vNormal" );
-    gl.vertexAttribPointer( vNormal, 3, gl.FLOAT, false, 0, 0 );
-    gl.enableVertexAttribArray( vNormal );
-
-
     var vColor = gl.getAttribLocation( program, "vColor" );
     gl.vertexAttribPointer( vColor, 4, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vColor );
@@ -245,28 +203,11 @@ window.onload = function init() {
 
     thetaLoc = gl.getUniformLocation(program, "theta");
 
-    //combination of contributions
-    var positional_ambientProduct = mult(positional_light_Ambient, materialAmbient);
-    var positional_diffuseProduct = mult(positional_light_Diffuse, materialDiffuse);
-    var positional_specularProduct = mult(positional_light_Specular, materialSpecular);
 
  document.getElementById("ButtonX").onclick = function(){axis = xAxis;};
  document.getElementById("ButtonY").onclick = function(){axis = yAxis;};
  document.getElementById("ButtonZ").onclick = function(){axis = zAxis;};
  document.getElementById("ButtonT").onclick = function(){flag = !flag;};
-document.getElementById("AddColors").onclick = function(){};
-
-
-    gl.uniform4fv(gl.getUniformLocation(program, "positional_ambientProduct"),
-       flatten(positional_ambientProduct));
-    gl.uniform4fv(gl.getUniformLocation(program, "positional_diffuseProduct"),
-       flatten(positional_diffuseProduct) );
-    gl.uniform4fv(gl.getUniformLocation(program, "positional_specularProduct"),
-       flatten(positional_specularProduct) );
-    gl.uniform4fv(gl.getUniformLocation(program, "positional_light_Position"),
-       flatten(positional_light_Position) );
-
-    gl.uniform1f(gl.getUniformLocation(program, "shininess"),materialShininess);
 
     render();
 }

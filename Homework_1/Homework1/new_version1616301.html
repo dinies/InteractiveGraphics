@@ -5,29 +5,23 @@
 <button id = "ButtonY">Rotate Y</button>
 <button id = "ButtonZ">Rotate Z</button>
 <button id = "ButtonT">Toggle Rotation</button>
-<button id = "AddColors">AddColors</button>
-
 
 
 <script id="vertex-shader" type="x-shader/x-vertex">
 
 attribute  vec4 vPosition;
-attribute  vec3 vNormal;
 attribute  vec4 vColor;
 attribute  vec2 vTexCoord;
 
 varying vec4 fColor;
 varying vec2 fTexCoord;
 
-
-//lights
-uniform vec4 positional_ambientProduct;
-uniform vec4 positional_diffuseProduct;
-uniform vec4 positional_specularProduct;
-uniform vec4 positional_light_Position;
-
 uniform vec3 theta;
-uniform float shininess;
+
+//declarations
+vec4 ambient, diffuse, specular;
+
+
 
 void main()
 {
@@ -54,36 +48,14 @@ void main()
 		    0.0,  0.0, 1.0, 0.0,
 		    0.0,  0.0, 0.0, 1.0 );
 
-    mat4 modelViewMatrix= rz * ry * rx;
+
+    //positional light
+    fColor = ambient + diffuse + specular;
 
 
-    //positional_light
-    vec3 pos = -(modelViewMatrix * vPosition).xyz;
-     vec3 light = positional_light_Position.xyz;
-     vec3 L = normalize(light - pos);
-     vec3 E = normalize(-pos);
-     vec3 H = normalize(L + E);
-
-     vec4 NN = vec4(vNormal,0);
-     // Transform vertex normal into eye    coordinates
-     vec3 N = normalize((modelViewMatrix * NN).xyz);
-     // Compute terms in the illumination equation
-     vec4 ambient = positional_ambientProduct;
-    float Kd = max(dot(L, N), 0.0);
-    vec4  diffuse = Kd * positional_diffuseProduct;
-    float Ks = pow(max(dot(N, H), 0.0),   shininess);
-    vec4  specular = Ks * positional_specularProduct;
-     if (dot(L, N) < 0.0) {
-       specular = vec4(0.0, 0.0, 0.0, 1.0);
-    }
-     fColor = (ambient + diffuse + specular);
-     fColor.a = 1.0;
-     fColor=vColor;
-     //error symptom !!
-     //vec4 trial= vec4(0.0, 0.0, 0.0, 1.0) *vColor;
-
+    fColor = vColor;
     fTexCoord = vTexCoord;
-    gl_Position = modelViewMatrix * vPosition;
+    gl_Position = rz * ry * rx * vPosition;
     gl_Position.z = -gl_Position.z;
 }
 </script>
@@ -101,7 +73,7 @@ uniform sampler2D Tex1;
 void
 main()
 {
-    gl_FragColor = fColor* (texture2D(Tex0, fTexCoord)*texture2D(Tex1, fTexCoord));
+    gl_FragColor = fColor*(texture2D(Tex0, fTexCoord)*texture2D(Tex1, fTexCoord));
 
 }
 </script>
@@ -109,7 +81,7 @@ main()
 <script type="text/javascript" src="../Common/webgl-utils.js"></script>
 <script type="text/javascript" src="../Common/initShaders.js"></script>
 <script type="text/javascript" src="../Common/MV.js"></script>
-<script type="text/javascript" src="Homework1_1616301.js"></script>
+<script type="text/javascript" src="new_version1616301.js"></script>
 
 <body>
 <canvas id="gl-canvas" width="1024" height="1024">
