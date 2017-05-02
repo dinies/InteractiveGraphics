@@ -49,6 +49,8 @@ var pointsArray = [];
 var colorsArray = [];
 var texCoordsArray = [];
 
+var normalsArray= [];
+
 var texCoord = [
     vec2(0, 0),
     vec2(0, 1),
@@ -87,6 +89,27 @@ var theta = [45.0, 45.0, 45.0];
 
 var thetaLoc;
 
+//lights and materials
+var lightPosition= vec4(0.0, 0.0, 3.0, 1.0 );
+
+//lightsOn
+//var lightAmbient = vec4(1.0, 1.0, 1.0, 1.0 );var lightSpecular = vec4(1.0, 1.0, 1.0, 1.0 );var lightDiffuse = vec4(1.0, 1.0, 1.0, 1.0 );
+
+//lightsOff
+var lightAmbient= vec4(0.0, 0.0,  0.0, 0.0); var lightSpecular=  vec4(0.0, 0.0,  0.0, 0.0);var lightDiffuse=  vec4(0.0, 0.0,  0.0, 0.0);
+
+
+//proves
+lightSpecular = vec4(1.0, 1.0, 1.0, 1.0 )
+
+
+var materialAmbient = vec4( 0.0, 0.0, 1.0, 1.0 );
+var materialSpecular = vec4( 0.0, 0.0, 1.0, 1.0 );
+var materialDiffuse = vec4( 0.0, 0.0, 1.0, 1.0);
+var materialShininess = 100.0;
+
+
+
 function configureTexture() {
     texture1 = gl.createTexture();
     gl.bindTexture( gl.TEXTURE_2D, texture1 );
@@ -108,29 +131,52 @@ function configureTexture() {
 }
 
 function quad(a, b, c, d) {
+
+     //normal computation
+     var t1 = subtract(vertices[b], vertices[a]);
+     var t2 = subtract(vertices[c], vertices[b]);
+     var normal = cross(t1, t2);
+     var normal = vec3(normal);
+     normal = normalize(normal);
+
+
+
      pointsArray.push(vertices[a]);
      colorsArray.push(vertexColors[a]);
      texCoordsArray.push(texCoord[0]);
+     normalsArray.push(normal);
+
+
 
      pointsArray.push(vertices[b]);
      colorsArray.push(vertexColors[a]);
      texCoordsArray.push(texCoord[1]);
+     normalsArray.push(normal);
+
 
      pointsArray.push(vertices[c]);
      colorsArray.push(vertexColors[a]);
      texCoordsArray.push(texCoord[2]);
+     normalsArray.push(normal);
+
 
      pointsArray.push(vertices[a]);
      colorsArray.push(vertexColors[a]);
      texCoordsArray.push(texCoord[0]);
+     normalsArray.push(normal);
+
 
      pointsArray.push(vertices[c]);
      colorsArray.push(vertexColors[a]);
      texCoordsArray.push(texCoord[2]);
+     normalsArray.push(normal);
+
 
      pointsArray.push(vertices[d]);
      colorsArray.push(vertexColors[a]);
      texCoordsArray.push(texCoord[3]);
+     normalsArray.push(normal);
+
 }
 
 function colorCube()
@@ -189,6 +235,14 @@ window.onload = function init() {
     gl.enableVertexAttribArray( vTexCoord );
 
 
+     var nBuffer = gl.createBuffer();
+    gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer);
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(normalsArray), gl.STATIC_DRAW );
+
+    var vNormal = gl.getAttribLocation( program, "vNormal" );
+    gl.vertexAttribPointer( vNormal, 3, gl.FLOAT, false, 0, 0 );
+    gl.enableVertexAttribArray( vNormal );
+
 
 
     configureTexture();
@@ -202,6 +256,30 @@ window.onload = function init() {
     gl.uniform1i(gl.getUniformLocation( program, "Tex1"), 1);
 
     thetaLoc = gl.getUniformLocation(program, "theta");
+
+    //products
+
+    var ambientProduct = mult(lightAmbient, materialAmbient);
+    var specularProduct = mult(lightSpecular, materialSpecular);
+    var diffuseProduct = mult(lightDiffuse, materialDiffuse);
+    //bindings
+
+
+    gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"),
+              flatten(ambientProduct));
+
+    gl.uniform4fv(gl.getUniformLocation(program, "specularProduct"),
+              flatten(specularProduct));
+
+    gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),
+              flatten(diffuseProduct));
+
+    gl.uniform1f(gl.getUniformLocation(program, "shininess"),
+              materialShininess);
+
+    gl.uniform4fv(gl.getUniformLocation(program, "lightPosition"),
+              flatten(lightPosition));
+
 
 
  document.getElementById("ButtonX").onclick = function(){axis = xAxis;};

@@ -19,8 +19,15 @@ varying vec2 fTexCoord;
 uniform vec3 theta;
 
 //declarations
-vec4 ambient, diffuse, specular;
 
+attribute vec3 vNormal;
+
+vec4 ambient, diffuse, specular;
+uniform vec4 ambientProduct;
+uniform vec4 diffuseProduct;
+uniform vec4 specularProduct;
+uniform vec4 lightPosition;
+uniform float shininess;
 
 
 void main()
@@ -48,14 +55,34 @@ void main()
 		    0.0,  0.0, 1.0, 0.0,
 		    0.0,  0.0, 0.0, 1.0 );
 
+    mat4 projection_matrix= rz * ry * rx;
 
-    //positional light
-    fColor = ambient + diffuse + specular;
+    //positional light gouroud
+    vec3 pos = -(projection_matrix * vPosition).xyz;
+    vec3 light = lightPosition.xyz;
+    vec3 L = normalize(light - pos);
+    vec3 E = normalize(-pos);
+    vec3 H = normalize(L + E);
+    vec4 NN = vec4(vNormal,0);
+    // Transform vertex normal into eye coordinates
+    vec3 N = normalize((projection_matrix * NN).xyz);
+    // Compute terms in the illumination equation
+    vec4 ambient = ambientProduct;
+    float Kd = max(dot(L, N), 0.0);
+    vec4  diffuse = Kd * diffuseProduct;
+    float Ks = pow(max(dot(N, H), 0.0), shininess);
+    vec4  specular = Ks * specularProduct;
+    if (dot(L, N) < 0.0) {
+        specular = vec4(0.0, 0.0, 0.0, 1.0);
+    }
+    vec4 color = (ambient + diffuse + specular);
+    color.a = 1.0;
+    fColor= color;
 
 
-    fColor = vColor;
+
     fTexCoord = vTexCoord;
-    gl_Position = rz * ry * rx * vPosition;
+    gl_Position = projection_matrix * vPosition;
     gl_Position.z = -gl_Position.z;
 }
 </script>
