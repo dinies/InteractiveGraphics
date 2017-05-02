@@ -85,28 +85,40 @@ var yAxis = 1;
 var zAxis = 2;
 var axis = xAxis;
 
-var theta = [45.0, 45.0, 45.0];
+//var theta = [45.0, 45.0, 45.0];
+var theta = [0, 0, 0];
+var projection , modelView;
 
-var thetaLoc;
+
+//shade cube config
+var lightPosition = vec4(1.0, 1.0, 1.0, 1.0 );
+var lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
+var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
+var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
+
+var materialAmbient = vec4( 1.0, 0.0, 1.0, 1.0 );
+var materialDiffuse = vec4( 1.0, 0.8, 0.0, 1.0);
+var materialSpecular = vec4( 1.0, 0.8, 0.0, 1.0 );
+var materialShininess = 100.0;
 
 //lights and materials
-var lightPosition= vec4(0.0, 0.0, 3.0, 1.0 );
+//var lightPosition= vec4(1.0, 1.0 , 0.0, 1.0 );
 
 //lightsOn
 //var lightAmbient = vec4(1.0, 1.0, 1.0, 1.0 );var lightSpecular = vec4(1.0, 1.0, 1.0, 1.0 );var lightDiffuse = vec4(1.0, 1.0, 1.0, 1.0 );
 
 //lightsOff
-var lightAmbient= vec4(0.0, 0.0,  0.0, 0.0); var lightSpecular=  vec4(0.0, 0.0,  0.0, 0.0);var lightDiffuse=  vec4(0.0, 0.0,  0.0, 0.0);
+//var lightAmbient= vec4(0.0, 0.0,  0.0, 0.0); var lightSpecular=  vec4(0.0, 0.0,  0.0, 0.0);var lightDiffuse=  vec4(0.0, 0.0,  0.0, 0.0);
 
 
 //proves
-lightSpecular = vec4(1.0, 1.0, 1.0, 1.0 )
+//lightSpecular = vec4(1.0, 1.0, 1.0, 1.0 )
 
 
-var materialAmbient = vec4( 0.0, 0.0, 1.0, 1.0 );
-var materialSpecular = vec4( 0.0, 0.0, 1.0, 1.0 );
-var materialDiffuse = vec4( 0.0, 0.0, 1.0, 1.0);
-var materialShininess = 100.0;
+//var materialAmbient = vec4( 0.2, 0.0, 0.0, 1.0 );
+//var materialSpecular = vec4( 0.0, 0.0, 1.0, 0.6 );
+//var materialDiffuse = vec4( 0.0, 1.0, 0.0, 1.0);
+//var materialShininess = 100.0;
 
 
 
@@ -137,7 +149,7 @@ function quad(a, b, c, d) {
      var t2 = subtract(vertices[c], vertices[b]);
      var normal = cross(t1, t2);
      var normal = vec3(normal);
-     normal = normalize(normal);
+     //normal = normalize(normal);
 
 
 
@@ -255,7 +267,8 @@ window.onload = function init() {
     gl.bindTexture( gl.TEXTURE_2D, texture2 );
     gl.uniform1i(gl.getUniformLocation( program, "Tex1"), 1);
 
-    thetaLoc = gl.getUniformLocation(program, "theta");
+
+    projection = ortho(-1, 1, -1, 1, -100, 100);
 
     //products
 
@@ -280,6 +293,8 @@ window.onload = function init() {
     gl.uniform4fv(gl.getUniformLocation(program, "lightPosition"),
               flatten(lightPosition));
 
+    gl.uniformMatrix4fv( gl.getUniformLocation(program, "projectionMatrix"),
+       false, flatten(projection));
 
 
  document.getElementById("ButtonX").onclick = function(){axis = xAxis;};
@@ -293,7 +308,16 @@ window.onload = function init() {
 var render = function() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     if(flag) theta[axis] += 2.0;
-    gl.uniform3fv(thetaLoc, theta);
+
+    modelView = mat4();
+    modelView = mult(modelView, rotate(theta[xAxis], [1, 0, 0] ));
+    modelView = mult(modelView, rotate(theta[yAxis], [0, 1, 0] ));
+    modelView = mult(modelView, rotate(theta[zAxis], [0, 0, 1] ));
+
+    gl.uniformMatrix4fv( gl.getUniformLocation(program,
+            "modelViewMatrix"), false, flatten(modelView) );
+
+
     gl.drawArrays( gl.TRIANGLES, 0, numVertices );
     requestAnimFrame(render);
 }
