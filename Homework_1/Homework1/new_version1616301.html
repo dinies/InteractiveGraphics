@@ -5,6 +5,7 @@
 <button id = "ButtonY">Rotate Y</button>
 <button id = "ButtonZ">Rotate Z</button>
 <button id = "ButtonT">Toggle Rotation</button>
+<button id = "ButtonShading">Change shading</button>
 
 
 <script id="vertex-shader" type="x-shader/x-vertex">
@@ -16,16 +17,22 @@ attribute  vec2 vTexCoord;
 varying vec4 fColor;
 varying vec2 fTexCoord;
 
+
+//add the varying variables and check if the  uniform shared variables are globally seen by both the shaders.
+
+varying vec3 N, L, E;
 //declarations
 
 attribute vec3 vNormal;
 
 vec4 ambient, diffuse, specular;
-uniform vec4 ambientProduct;
-uniform vec4 diffuseProduct;
-uniform vec4 specularProduct;
+
+uniform vec4 ambientProductVertex;
+uniform vec4 diffuseProductVertex;
+uniform vec4 specularProductVertex;
 uniform vec4 lightPosition;
-uniform float shininess;
+uniform float shininessVertex;
+uniform float flagChangeShadingVertex;
 
 uniform mat4 projectionMatrix;
 uniform mat4 modelViewMatrix;
@@ -34,7 +41,7 @@ uniform mat4 modelViewMatrix;
 void main()
 {
 
-
+if(flagChangeShadingVertex == 1.0) {
     //positional light gouroud
     vec3 pos = -(modelViewMatrix * vPosition).xyz;
     vec3 light = lightPosition.xyz;
@@ -45,11 +52,11 @@ void main()
     // Transform vertex normal into eye coordinates
     vec3 N = normalize((modelViewMatrix * NN).xyz);
     // Compute terms in the illumination equation
-    vec4 ambient = ambientProduct;
+    vec4 ambient = ambientProductVertex;
     float Kd = max(dot(L, N), 0.0);
-    vec4  diffuse = Kd * diffuseProduct;
-    float Ks = pow(max(dot(N, H), 0.0), shininess);
-    vec4  specular = Ks * specularProduct;
+    vec4  diffuse = Kd * diffuseProductVertex;
+    float Ks = pow(max(dot(N, H), 0.0), shininessVertex);
+    vec4  specular = Ks * specularProductVertex;
     if (dot(L, N) < 0.0) {
         specular = vec4(0.0, 0.0, 0.0, 1.0);
     }
@@ -62,6 +69,22 @@ void main()
     fTexCoord = vTexCoord;
     gl_Position = projectionMatrix * modelViewMatrix * vPosition;
     gl_Position.z = -gl_Position.z;
+
+    }
+    else{
+        //phong shading
+        vec3 pos = -(modelViewMatrix * vPosition).xyz;
+        vec3 light = lightPosition.xyz;
+        L =  normalize(light - pos);
+        E =  -pos;
+        vec4 NN = vec4(vNormal,0);
+        N = normalize((modelViewMatrix * NN).xyz);
+        gl_Position = projectionMatrix * modelViewMatrix * vPosition;
+        gl_Position.z = -gl_Position.z;
+        fTexCoord = vTexCoord;
+        fColor= vColor;
+
+    };
 }
 </script>
 
@@ -71,15 +94,39 @@ precision mediump float;
 
 varying vec4 fColor;
 varying  vec2 fTexCoord;
+uniform float flagChangeShadingFragment;
 
 uniform sampler2D Tex0;
 uniform sampler2D Tex1;
 
+uniform vec4 ambientProductFragment;
+uniform vec4 diffuseProductFragment;
+uniform vec4 specularProductFragment;
+uniform float shininessFragment;
+varying vec3 N, L, E;
+
 void
 main()
 {
-    gl_FragColor = fColor;//*(texture2D(Tex0, fTexCoord)*texture2D(Tex1, fTexCoord));
+    if(flagChangeShadingFragment==1.0)   {
+        gl_FragColor = fColor*(texture2D(Tex0, fTexCoord)*texture2D(Tex1, fTexCoord));
+    }
+    else{
+        vec3 H = normalize(L + E);
+        vec4 ambient = ambientProductFragment;
+        float Kd = max(dot(L, N), 0.0);
+        vec4  diffuse = Kd * diffuseProductFragment;
+        float Ks = pow(max(dot(N, H), 0.0), shininessFragment);
+        vec4  specular = Ks * specularProductFragment;
+        if (dot(L, N) < 0.0) {
+            specular = vec4(0.0, 0.0, 0.0, 1.0);
+            }
 
+        vec4 color = (ambient + diffuse + specular);
+        color.a = 1.0;
+        gl_FragColor =  color * fColor * (texture2D(Tex0, fTexCoord)*texture2D(Tex1, fTexCoord));
+
+    };
 }
 </script>
 

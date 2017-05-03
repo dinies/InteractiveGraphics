@@ -15,7 +15,11 @@ var t1, t2;
 
 var c;
 
-var flag = true;
+//FLAGS
+
+var flag_start_stop_rotation = true;
+//TODO add some indication on wich tecnique is being used, changing for example the name of the button
+var flag_change_shading_tecnique= true;
 
 var image1 = new Uint8Array(4*texSize*texSize);
 
@@ -91,7 +95,7 @@ var projection , modelView;
 
 
 //shade cube config
-var lightPosition = vec4(1.0, 1.0, 1.0, 1.0 );
+var lightPosition = vec4(0.6, 0.6, 0.6, 1.0 );
 var lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
 var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
 var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
@@ -101,24 +105,6 @@ var materialDiffuse = vec4( 1.0, 0.8, 0.0, 1.0);
 var materialSpecular = vec4( 1.0, 0.8, 0.0, 1.0 );
 var materialShininess = 100.0;
 
-//lights and materials
-//var lightPosition= vec4(1.0, 1.0 , 0.0, 1.0 );
-
-//lightsOn
-//var lightAmbient = vec4(1.0, 1.0, 1.0, 1.0 );var lightSpecular = vec4(1.0, 1.0, 1.0, 1.0 );var lightDiffuse = vec4(1.0, 1.0, 1.0, 1.0 );
-
-//lightsOff
-//var lightAmbient= vec4(0.0, 0.0,  0.0, 0.0); var lightSpecular=  vec4(0.0, 0.0,  0.0, 0.0);var lightDiffuse=  vec4(0.0, 0.0,  0.0, 0.0);
-
-
-//proves
-//lightSpecular = vec4(1.0, 1.0, 1.0, 1.0 )
-
-
-//var materialAmbient = vec4( 0.2, 0.0, 0.0, 1.0 );
-//var materialSpecular = vec4( 0.0, 0.0, 1.0, 0.6 );
-//var materialDiffuse = vec4( 0.0, 1.0, 0.0, 1.0);
-//var materialShininess = 100.0;
 
 
 
@@ -277,18 +263,37 @@ window.onload = function init() {
     var diffuseProduct = mult(lightDiffuse, materialDiffuse);
     //bindings
 
-
-    gl.uniform4fv(gl.getUniformLocation(program, "ambientProduct"),
+    //vertex shader
+    gl.uniform4fv(gl.getUniformLocation(program, "ambientProductVertex"),
               flatten(ambientProduct));
 
-    gl.uniform4fv(gl.getUniformLocation(program, "specularProduct"),
+    gl.uniform4fv(gl.getUniformLocation(program, "specularProductVertex"),
               flatten(specularProduct));
 
-    gl.uniform4fv(gl.getUniformLocation(program, "diffuseProduct"),
+    gl.uniform4fv(gl.getUniformLocation(program, "diffuseProductVertex"),
               flatten(diffuseProduct));
 
-    gl.uniform1f(gl.getUniformLocation(program, "shininess"),
+    gl.uniform1f(gl.getUniformLocation(program, "shininessVertex"),
               materialShininess);
+
+
+
+
+    gl.uniform4fv(gl.getUniformLocation(program, "ambientProductFragment"),
+              flatten(ambientProduct));
+
+    gl.uniform4fv(gl.getUniformLocation(program, "specularProductFragment"),
+              flatten(specularProduct));
+
+    gl.uniform4fv(gl.getUniformLocation(program, "diffuseProductFragment"),
+              flatten(diffuseProduct));
+
+    gl.uniform1f(gl.getUniformLocation(program, "shininessFragment"),
+              materialShininess);
+
+
+
+
 
     gl.uniform4fv(gl.getUniformLocation(program, "lightPosition"),
               flatten(lightPosition));
@@ -300,14 +305,15 @@ window.onload = function init() {
  document.getElementById("ButtonX").onclick = function(){axis = xAxis;};
  document.getElementById("ButtonY").onclick = function(){axis = yAxis;};
  document.getElementById("ButtonZ").onclick = function(){axis = zAxis;};
- document.getElementById("ButtonT").onclick = function(){flag = !flag;};
+ document.getElementById("ButtonT").onclick = function(){flag_start_stop_rotation = !flag_start_stop_rotation;};
+ document.getElementById("ButtonShading").onclick = function(){flag_change_shading_tecnique = !flag_change_shading_tecnique;};
 
     render();
 }
 
 var render = function() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    if(flag) theta[axis] += 2.0;
+    if(flag_start_stop_rotation) theta[axis] += 2.0;
 
     modelView = mat4();
     modelView = mult(modelView, rotate(theta[xAxis], [1, 0, 0] ));
@@ -316,7 +322,20 @@ var render = function() {
 
     gl.uniformMatrix4fv( gl.getUniformLocation(program,
             "modelViewMatrix"), false, flatten(modelView) );
+//TODO remove this double variable finding a way to set up a global in the html code for both shaders
+    if (flag_change_shading_tecnique) {
 
+        gl.uniform1f(gl.getUniformLocation(program, "flagChangeShadingVertex"),
+              1.0);
+        gl.uniform1f(gl.getUniformLocation(program, "flagChangeShadingFragment"),
+              1.0);
+    }
+    else{ 
+            gl.uniform1f(gl.getUniformLocation(program, "flagChangeShadingVertex"),
+              2.0);
+             gl.uniform1f(gl.getUniformLocation(program, "flagChangeShadingFragment"),
+              2.0);
+        }
 
     gl.drawArrays( gl.TRIANGLES, 0, numVertices );
     requestAnimFrame(render);
