@@ -1,15 +1,123 @@
     <!DOCTYPE html>
     <html>
+    <head>
+<style>
+.button {
+  display: inline-block;
+  border-radius: 2px;
+  background-color: #0066ff;
+  border: none;
+  color: #FFFFFF;
+  text-align: center;
+  font-size: 10px;
+  padding: 6px;
+  width: 80px;
+  transition: all 0.1s;
+  cursor: pointer;
+  margin: 1px;
+}
 
-    <button id = "ButtonX">Rotate X</button>
-    <button id = "ButtonY">Rotate Y</button>
-    <button id = "ButtonZ">Rotate Z</button>
-    <button id = "ButtonT">Toggle Rotation</button>
-    <button id = "ButtonShading">Change shading</button>
-    <button id = "ButtonPositionalLight">Positional Light </button>
-    <button id = "ButtonDirectionalLight">Directional Light </button>
-    <button id = "ButtonSpotlightLight">Spotlight Light </button>
+.button span {
+  cursor: pointer;
+  display: inline-block;
+  position: relative;
+  transition: 0.5s;
+}
 
+.button span:after {
+  content: '\00bb';
+  position: absolute;
+  opacity: 0;
+  top: 0;
+  right: -20px;
+  transition: 0.5s;
+}
+
+.button:hover span {
+  padding-right: 25px;
+}
+
+.button:hover span:after {
+  opacity: 1;
+  right: 0;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+.switch input {display:none;}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+
+
+</style>
+</head>
+
+ 
+    <button class="button" style="vertical-align:middle" id = "ButtonX"><span>Rotate X</span></button>
+    <button class="button" style="vertical-align:middle" id = "ButtonY"><span>Rotate Y</span></button>
+    <button class="button" style="vertical-align:middle" id = "ButtonZ"><span>Rotate Z</span></button>
+    <button class="button" style="vertical-align:middle" id = "ButtonT"><span>Toggle Rotation</span></button>
+    <br>
+    <div><p>Phong shading (per-fragment) :</p>
+    <label class="switch">
+      <input type="checkbox">
+      <div class="slider round" id = "ButtonShading"></div>
+    </label>
+    </div>
+    <br>
+    <button class="button" style="vertical-align:middle; background-color: #008000" id = "ButtonPositionalLight"><span>Positional Light</span></button>
+    <button class="button" style="vertical-align:middle; background-color: #008000" id = "ButtonDirectionalLight"><span>Directional Light</span></button>
+    <button class="button" style="vertical-align:middle; background-color: #008000" id = "ButtonSpotlightLight"><span>Spotlight Light</span></button>
 
 
     <script id="vertex-shader" type="x-shader/x-vertex">
@@ -69,8 +177,9 @@
     {
 
     if(flagChangeShading) {
-
+        //pos = vector from the vertex towards the eye
         vec3 pos = -(modelViewMatrix * vPosition).xyz;
+        //E= vector from the eye towards the vertex
         vec3 E = normalize(-pos);
         vec4 NN = vec4(vNormal,0);
         vec3 N = normalize((modelViewMatrix * NN).xyz);
@@ -95,7 +204,7 @@
 
         //DIRECTIONAL LIGHT
         //computing the unit direction toward the light
-        vec3 D =  normalize(directionalLightPosition.xyz);
+        vec3 D =  -normalize(directionalLightPosition.xyz);
         vec3 H_directional = normalize( D + E); 
         vec4 directional_ambient = directionalAmbientProduct;
         float Kd2 = max(dot(D, N), 0.0);
@@ -141,7 +250,7 @@
             fColor= vColor;
 
             //DIRECTIONAL LIGHT
-            D_for_frag=  normalize(directionalLightPosition.xyz);
+            D_for_frag=  -normalize(directionalLightPosition.xyz);
             //LIGHT INDEPENDANTS
             gl_Position = projectionMatrix * modelViewMatrix * vPosition;
             gl_Position.z = -gl_Position.z;

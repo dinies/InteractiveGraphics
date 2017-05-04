@@ -18,11 +18,10 @@ var c;
 //FLAGS
 
 var flag_start_stop_rotation = true;
-//TODO add some indication on wich tecnique is being used, changing for example the name of the button
 var flag_change_shading_tecnique= true;
 var flag_positional_light= true;
-var flag_directional_light= !true;
-var flag_spotlight_light= !true;
+var flag_directional_light= true;
+var flag_spotlight_light= !true; //CHANGE TO TRUE after that you have implemented the light behaviour in the shaders
 
 var image1 = new Uint8Array(4*texSize*texSize);
 
@@ -106,7 +105,7 @@ var positional_lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
 var positional_lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
 var positional_lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
 
-var directional_lightPosition = vec4(-0.9, -0.1, -0.6, 0.0 );
+var directional_lightPosition = vec4(0.9, 0.1, 0.6, 0.0 );
 var directional_lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
 var directional_lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
 var directional_lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
@@ -352,10 +351,25 @@ window.onload = function init() {
  document.getElementById("ButtonZ").onclick = function(){axis = zAxis;};
  document.getElementById("ButtonT").onclick = function(){flag_start_stop_rotation = !flag_start_stop_rotation;};
  document.getElementById("ButtonShading").onclick = function(){flag_change_shading_tecnique = !flag_change_shading_tecnique;};
- document.getElementById("ButtonPositionalLight").onclick = function(){flag_positional_light = !flag_positional_light;};
- document.getElementById("ButtonDirectionalLight").onclick = function(){flag_directional_light = !flag_directional_light;};
+ document.getElementById("ButtonPositionalLight").onclick = function(){
+            flag_positional_light = !flag_positional_light;
+            if(flag_positional_light)
+            document.getElementById("ButtonPositionalLight").style.background="Green";
+            else{
+            document.getElementById("ButtonPositionalLight").style.background="Red";
+            }
+        };
+        
+ document.getElementById("ButtonDirectionalLight").onclick = function(){
+            flag_directional_light = !flag_directional_light;
+            if(flag_directional_light)
+            document.getElementById("ButtonDirectionalLight").style.background="Green";
+            else{
+            document.getElementById("ButtonDirectionalLight").style.background="Red";
+            }
+        };
  document.getElementById("ButtonSpotlightLight").onclick = function(){flag_spotlight_light = !flag_spotlight_light;};
-
+// add BACKGROUND COLOR CHANGE TO THE BUTTON 
 
     render();
 }
