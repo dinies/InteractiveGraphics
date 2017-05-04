@@ -20,6 +20,9 @@ var c;
 var flag_start_stop_rotation = true;
 //TODO add some indication on wich tecnique is being used, changing for example the name of the button
 var flag_change_shading_tecnique= true;
+var flag_positional_light= true;
+var flag_directional_light= !true;
+var flag_spotlight_light= !true;
 
 var image1 = new Uint8Array(4*texSize*texSize);
 
@@ -95,10 +98,24 @@ var projection , modelView;
 
 
 //shade cube config
-var lightPosition = vec4(0.6, 0.6, 0.6, 1.0 );
-var lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
-var lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
-var lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
+
+
+
+var positional_lightPosition = vec4(0.6, 0.6, 0.6, 1.0 );
+var positional_lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
+var positional_lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
+var positional_lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
+
+var directional_lightPosition = vec4(-0.9, -0.1, -0.6, 0.0 );
+var directional_lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
+var directional_lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
+var directional_lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
+
+var spotlight_lightPosition = vec4(0.6, 0.6, 0.6, 1.0 );
+var spotlight_lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
+var spotlight_lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
+var spotlight_lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
+
 
 var materialAmbient = vec4( 1.0, 0.0, 1.0, 1.0 );
 var materialDiffuse = vec4( 1.0, 0.8, 0.0, 1.0);
@@ -135,7 +152,7 @@ function quad(a, b, c, d) {
      var t2 = subtract(vertices[c], vertices[b]);
      var normal = cross(t1, t2);
      var normal = vec3(normal);
-     //normal = normalize(normal);
+     normal = normalize(normal);
 
 
 
@@ -258,45 +275,73 @@ window.onload = function init() {
 
     //products
 
-    var ambientProduct = mult(lightAmbient, materialAmbient);
-    var specularProduct = mult(lightSpecular, materialSpecular);
-    var diffuseProduct = mult(lightDiffuse, materialDiffuse);
+    var positional_ambientProduct = mult(positional_lightAmbient, materialAmbient);
+    var positional_specularProduct = mult(positional_lightSpecular, materialSpecular);
+    var positional_diffuseProduct = mult(positional_lightDiffuse, materialDiffuse);
+
+    var directional_ambientProduct = mult(directional_lightAmbient, materialAmbient);
+    var directional_specularProduct = mult(directional_lightSpecular, materialSpecular);
+    var directional_diffuseProduct = mult(directional_lightDiffuse, materialDiffuse);
+
+    var spotlight_ambientProduct = mult(spotlight_lightAmbient, materialAmbient);
+    var spotlight_specularProduct = mult(spotlight_lightSpecular, materialSpecular);
+    var spotlight_diffuseProduct = mult(spotlight_lightDiffuse, materialDiffuse);
+
+
+
+
     //bindings
 
-    //vertex shader
-    gl.uniform4fv(gl.getUniformLocation(program, "ambientProductVertex"),
-              flatten(ambientProduct));
+    gl.uniform4fv(gl.getUniformLocation(program, "positionalAmbientProduct"),
+              flatten(positional_ambientProduct));
 
-    gl.uniform4fv(gl.getUniformLocation(program, "specularProductVertex"),
-              flatten(specularProduct));
+    gl.uniform4fv(gl.getUniformLocation(program, "positionalSpecularProduct"),
+              flatten(positional_specularProduct));
 
-    gl.uniform4fv(gl.getUniformLocation(program, "diffuseProductVertex"),
-              flatten(diffuseProduct));
+    gl.uniform4fv(gl.getUniformLocation(program, "positionalDiffuseProduct"),
+              flatten(positional_diffuseProduct));
 
-    gl.uniform1f(gl.getUniformLocation(program, "shininessVertex"),
+    gl.uniform4fv(gl.getUniformLocation(program, "positionalLightPosition"),
+              flatten(positional_lightPosition));
+
+
+
+    gl.uniform4fv(gl.getUniformLocation(program, "directionalAmbientProduct"),
+              flatten(directional_ambientProduct));
+
+    gl.uniform4fv(gl.getUniformLocation(program, "directionalSpecularProduct"),
+              flatten(directional_specularProduct));
+
+    gl.uniform4fv(gl.getUniformLocation(program, "directionalDiffuseProduct"),
+              flatten(directional_diffuseProduct));
+
+
+    gl.uniform4fv(gl.getUniformLocation(program, "directionalLightPosition"),
+              flatten(directional_lightPosition));
+  
+
+
+
+    gl.uniform4fv(gl.getUniformLocation(program, "spotlightAmbientProduct"),
+              flatten(spotlight_ambientProduct));
+
+    gl.uniform4fv(gl.getUniformLocation(program, "spotlightSpecularProduct"),
+              flatten(spotlight_specularProduct));
+
+    gl.uniform4fv(gl.getUniformLocation(program, "spotlightDiffuseProduct"),
+              flatten(spotlight_diffuseProduct));
+
+
+    gl.uniform4fv(gl.getUniformLocation(program, "spotlightLightPosition"),
+              flatten(spotlight_lightPosition));
+
+
+
+
+    gl.uniform1f(gl.getUniformLocation(program, "shininess"),
               materialShininess);
 
 
-
-
-    gl.uniform4fv(gl.getUniformLocation(program, "ambientProductFragment"),
-              flatten(ambientProduct));
-
-    gl.uniform4fv(gl.getUniformLocation(program, "specularProductFragment"),
-              flatten(specularProduct));
-
-    gl.uniform4fv(gl.getUniformLocation(program, "diffuseProductFragment"),
-              flatten(diffuseProduct));
-
-    gl.uniform1f(gl.getUniformLocation(program, "shininessFragment"),
-              materialShininess);
-
-
-
-
-
-    gl.uniform4fv(gl.getUniformLocation(program, "lightPosition"),
-              flatten(lightPosition));
 
     gl.uniformMatrix4fv( gl.getUniformLocation(program, "projectionMatrix"),
        false, flatten(projection));
@@ -307,6 +352,10 @@ window.onload = function init() {
  document.getElementById("ButtonZ").onclick = function(){axis = zAxis;};
  document.getElementById("ButtonT").onclick = function(){flag_start_stop_rotation = !flag_start_stop_rotation;};
  document.getElementById("ButtonShading").onclick = function(){flag_change_shading_tecnique = !flag_change_shading_tecnique;};
+ document.getElementById("ButtonPositionalLight").onclick = function(){flag_positional_light = !flag_positional_light;};
+ document.getElementById("ButtonDirectionalLight").onclick = function(){flag_directional_light = !flag_directional_light;};
+ document.getElementById("ButtonSpotlightLight").onclick = function(){flag_spotlight_light = !flag_spotlight_light;};
+
 
     render();
 }
@@ -322,20 +371,20 @@ var render = function() {
 
     gl.uniformMatrix4fv( gl.getUniformLocation(program,
             "modelViewMatrix"), false, flatten(modelView) );
-//TODO remove this double variable finding a way to set up a global in the html code for both shaders
-    if (flag_change_shading_tecnique) {
 
-        gl.uniform1f(gl.getUniformLocation(program, "flagChangeShadingVertex"),
-              1.0);
-        gl.uniform1f(gl.getUniformLocation(program, "flagChangeShadingFragment"),
-              1.0);
-    }
-    else{ 
-            gl.uniform1f(gl.getUniformLocation(program, "flagChangeShadingVertex"),
-              2.0);
-             gl.uniform1f(gl.getUniformLocation(program, "flagChangeShadingFragment"),
-              2.0);
-        }
+
+    gl.uniform1f(gl.getUniformLocation(program, "flagChangeShading"),
+              flag_change_shading_tecnique);
+
+    gl.uniform1f(gl.getUniformLocation(program, "flagPositionalLight"),
+              flag_positional_light);
+
+    gl.uniform1f(gl.getUniformLocation(program, "flagDirectionalLight"),
+              flag_directional_light);
+  
+    gl.uniform1f(gl.getUniformLocation(program, "flagSpotlightLight"),
+              flag_spotlight_light);
+
 
     gl.drawArrays( gl.TRIANGLES, 0, numVertices );
     requestAnimFrame(render);
