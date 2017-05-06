@@ -17,11 +17,11 @@ var c;
 
 //FLAGS
 
-var flag_start_stop_rotation = true;
+var flag_start_stop_rotation = false;
 var flag_change_shading_tecnique= true;
 var flag_positional_light= true;
 var flag_directional_light= true;
-var flag_spotlight_light= !true; //CHANGE TO TRUE after that you have implemented the light behaviour in the shaders
+var flag_spotlight_light= true; //CHANGE TO TRUE after that you have implemented the light behaviour in the shaders
 
 var image1 = new Uint8Array(4*texSize*texSize);
 
@@ -98,28 +98,32 @@ var projection , modelView;
 
 //shade cube config
 
-
-
-var positional_lightPosition = vec4(0.6, 0.6, 0.6, 1.0 );
-var positional_lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
+var positional_lightPosition = vec4(0.0, 0.0, 1.0, 1.0 );
+var positional_lightAmbient = vec4(0.0, 0.0, 0.0, 1.0 );
 var positional_lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
 var positional_lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
 
-var directional_lightPosition = vec4(0.9, 0.1, 0.6, 0.0 );
-var directional_lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
+var directional_lightPosition = vec4(1.0, 0.0, 0.0, 0.0 );
+var directional_lightAmbient = vec4(0.0, 0.0, 0.0, 1.0 );
 var directional_lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
 var directional_lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
 
-var spotlight_lightPosition = vec4(0.6, 0.6, 0.6, 1.0 );
-var spotlight_lightAmbient = vec4(0.2, 0.2, 0.2, 1.0 );
+var spotlight_lightPosition = vec4(0.0, 0.0, 1.0, 1.0 );
+var spotlight_lightAmbient = vec4(0.0, 0.0, 0.0, 1.0 );
 var spotlight_lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
 var spotlight_lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
+//specular contribution in gouroud is not visible and in 
+//phong is always in the center of all the faces of the cube
+
+var spotlight_coneDirection = vec3(0.0, 0.0 , -1.0);
+var spotlight_thetaCone = 1.0;
+var spotlight_cutOff= 10.0;
 
 
-var materialAmbient = vec4( 1.0, 0.0, 1.0, 1.0 );
-var materialDiffuse = vec4( 1.0, 0.8, 0.0, 1.0);
-var materialSpecular = vec4( 1.0, 0.8, 0.0, 1.0 );
-var materialShininess = 100.0;
+var materialAmbient = vec4( 1.0, 1.0, 1.0, 1.0 );
+var materialDiffuse = vec4( 1.0, 1.0, 1.0, 1.0);
+var materialSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
+var materialShininess = 4.0;
 
 
 
@@ -215,6 +219,7 @@ window.onload = function init() {
     gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
 
     gl.enable(gl.DEPTH_TEST);
+    gl.enable(gl.CULL_FACE);
 
     //
     //  Load shaders and initialize attribute buffers
@@ -337,6 +342,17 @@ window.onload = function init() {
 
 
 
+    gl.uniform3fv(gl.getUniformLocation(program, "spotlight_coneDirection"),
+              flatten(spotlight_coneDirection));
+
+    gl.uniform1f(gl.getUniformLocation(program, "spotlight_thetaCone"),
+              spotlight_thetaCone);
+
+    gl.uniform1f(gl.getUniformLocation(program, "spotlight_cutOff"),
+              spotlight_cutOff);
+
+
+
     gl.uniform1f(gl.getUniformLocation(program, "shininess"),
               materialShininess);
 
@@ -368,8 +384,14 @@ window.onload = function init() {
             document.getElementById("ButtonDirectionalLight").style.background="Red";
             }
         };
- document.getElementById("ButtonSpotlightLight").onclick = function(){flag_spotlight_light = !flag_spotlight_light;};
-// add BACKGROUND COLOR CHANGE TO THE BUTTON 
+ document.getElementById("ButtonSpotlightLight").onclick = function(){
+            flag_spotlight_light = !flag_spotlight_light;
+            if(flag_spotlight_light)
+            document.getElementById("ButtonSpotlightLight").style.background="Green";
+            else{
+            document.getElementById("ButtonSpotlightLight").style.background="Red";
+            }
+        };
 
     render();
 }

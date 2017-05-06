@@ -11,7 +11,7 @@
   text-align: center;
   font-size: 10px;
   padding: 6px;
-  width: 80px;
+  width: 120px;
   transition: all 0.1s;
   cursor: pointer;
   margin: 1px;
@@ -107,6 +107,11 @@ input:checked + .slider:before {
     <button class="button" style="vertical-align:middle" id = "ButtonY"><span>Rotate Y</span></button>
     <button class="button" style="vertical-align:middle" id = "ButtonZ"><span>Rotate Z</span></button>
     <button class="button" style="vertical-align:middle" id = "ButtonT"><span>Toggle Rotation</span></button>
+    <button class="button" style="vertical-align:middle; background-color: #008000" id = "ButtonPositionalLight"><span>Positional Light</span></button>
+    <button class="button" style="vertical-align:middle; background-color: #008000" id = "ButtonDirectionalLight"><span>Directional Light</span></button>
+    <button class="button" style="vertical-align:middle; background-color: #008000" id = "ButtonSpotlightLight"><span>Spotlight Light</span></button>
+
+
     <br>
     <div><p>Phong shading (per-fragment) :</p>
     <label class="switch">
@@ -115,15 +120,10 @@ input:checked + .slider:before {
     </label>
     </div>
     <br>
-    <button class="button" style="vertical-align:middle; background-color: #008000" id = "ButtonPositionalLight"><span>Positional Light</span></button>
-    <button class="button" style="vertical-align:middle; background-color: #008000" id = "ButtonDirectionalLight"><span>Directional Light</span></button>
-    <button class="button" style="vertical-align:middle; background-color: #008000" id = "ButtonSpotlightLight"><span>Spotlight Light</span></button>
-
-
+    
     <script id="vertex-shader" type="x-shader/x-vertex">
 
     precision mediump float;
-
 
     attribute  vec4 vPosition;
     attribute  vec4 vColor;
@@ -137,8 +137,6 @@ input:checked + .slider:before {
     varying vec3 L_positional_for_frag;
     varying vec3 D_for_frag; //directional light unit vector
     varying vec3 L_spotlight_for_frag;
-
-    //declarations
 
     attribute vec3 vNormal;
 
@@ -162,6 +160,10 @@ input:checked + .slider:before {
     uniform vec4 spotlightLightPosition;
 
 
+    uniform vec3 spotlight_coneDirection;
+    uniform float spotlight_thetaCone;
+    uniform float spotlight_cutOff;
+
     uniform float shininess;
 
     uniform bool flagChangeShading;
@@ -175,11 +177,12 @@ input:checked + .slider:before {
 
     void main()
     {
+        //pos = vector from the eye towards the vertex (counter-intuitive
+        vec3 pos = -(modelViewMatrix * vPosition).xyz;
 
     if(flagChangeShading) {
-        //pos = vector from the vertex towards the eye
-        vec3 pos = -(modelViewMatrix * vPosition).xyz;
-        //E= vector from the eye towards the vertex
+        
+        //E= vector from the vertex towards the eye
         vec3 E = normalize(-pos);
         vec4 NN = vec4(vNormal,0);
         vec3 N = normalize((modelViewMatrix * NN).xyz);
@@ -198,13 +201,12 @@ input:checked + .slider:before {
         if (dot(L_positional, N) < 0.0) {
             positional_specular = vec4(0.0, 0.0, 0.0, 1.0);
         }
-
-
+        //  IMPLEMENT ATTENUATION
         vec4 positionalColor = (positional_ambient + positional_diffuse + positional_specular);
 
         //DIRECTIONAL LIGHT
         //computing the unit direction toward the light
-        vec3 D =  -normalize(directionalLightPosition.xyz);
+        vec3 D =  normalize(directionalLightPosition.xyz);
         vec3 H_directional = normalize( D + E); 
         vec4 directional_ambient = directionalAmbientProduct;
         float Kd2 = max(dot(D, N), 0.0);
@@ -216,6 +218,44 @@ input:checked + .slider:before {
         }
         vec4 directionalColor = (directional_ambient + directional_diffuse + directional_specular);
 
+        //SPOTLIGHT
+        vec3 spotLightLight = spotlightLightPosition.xyz;
+        vec3 L_spotlight = normalize(spotLightLight - pos);
+
+        float spotlight_intensity_multiplier;
+        vec3 C= normalize(spotlight_coneDirection);
+        //s= vector from the spotlight source towards the surface
+        vec3 s= -L_spotlight;
+        //check if the cone direction and the direction towards the surface point are concordant
+        if (dot(s,C) <= 0.0) {
+            spotlight_intensity_multiplier =0.0;
+        }
+        else{
+            float phi_angle= acos(dot(s,C));
+            // check if the surface point is outside the cone of projected light
+            if(degrees(phi_angle) > spotlight_thetaCone){
+                spotlight_intensity_multiplier = 0.0;
+            }
+            else{
+                spotlight_intensity_multiplier= pow(cos(phi_angle), spotlight_cutOff);
+            }
+        }
+        // computing vectors with the emmbedded intensity of the spotlight
+        vec3 L_spotlight_prime= L_spotlight* spotlight_intensity_multiplier;
+        vec3 H_spotlight_prime= normalize(L_spotlight_prime + E);
+        
+
+        vec4 spotlight_ambient= spotlightAmbientProduct;
+        float Kd3 = max(dot(L_spotlight_prime, N), 0.0);
+        vec4  spotlight_diffuse = Kd3 * spotlightDiffuseProduct;
+        float Ks3 = pow(max(dot(N, H_spotlight_prime), 0.0), shininess);
+        vec4  spotlight_specular = Ks3 * spotlightSpecularProduct;
+        if (dot(L_spotlight_prime, N) < 0.0) {
+            spotlight_specular = vec4(0.0, 0.0, 0.0, 1.0);
+        }
+        vec4 spotlightColor = (spotlight_ambient + spotlight_diffuse + spotlight_specular);
+        //  IMPLEMENT ATTENUATION
+
         //FINALLY
 
         vec4 finalColor= vec4(0.0,0.0,0.0,0.0);
@@ -225,9 +265,12 @@ input:checked + .slider:before {
         if(flagDirectionalLight){
             finalColor= finalColor + directionalColor;
         }
-        //SAME FOR SPOTLIGHT CONTRIBUTION
-       
-       finalColor.a=1.0;
+        if(flagSpotlightLight){
+            finalColor= finalColor + spotlightColor;
+        }
+
+        finalColor.a=1.0;
+        //  IMPLEMENT GAMMA CORRECTION
         fColor= finalColor * vColor;
 
 
@@ -237,20 +280,24 @@ input:checked + .slider:before {
 
         }
         else{
-    //PHONG
+        //PHONG
             //check for duplicated code between if branches
             //POSITIONAL LIGHT
-            vec3 pos = -(modelViewMatrix * vPosition).xyz;                  //duplicated
-            vec3 positionalLight = positionalLightPosition.xyz;             //duplicated
+            vec3 positionalLight = positionalLightPosition.xyz;             
             L_positional_for_frag =  normalize(positionalLight - pos);
             E_for_frag =  -pos; //maybe it should be normalized
-            vec4 NN = vec4(vNormal,0);                                     //semi- duplicated
+            vec4 NN = vec4(vNormal,0);                              
             N_for_frag = normalize((modelViewMatrix * NN).xyz);
             
             fColor= vColor;
 
             //DIRECTIONAL LIGHT
             D_for_frag=  -normalize(directionalLightPosition.xyz);
+
+            //SPOTLIGHT
+            vec3 spotLightLight = spotlightLightPosition.xyz;
+            L_spotlight_for_frag= normalize( spotLightLight - pos);
+
             //LIGHT INDEPENDANTS
             gl_Position = projectionMatrix * modelViewMatrix * vPosition;
             gl_Position.z = -gl_Position.z;
@@ -288,6 +335,11 @@ input:checked + .slider:before {
     uniform vec4 spotlightSpecularProduct;
     uniform vec4 spotlightDiffuseProduct;
 
+
+    uniform vec3 spotlight_coneDirection;
+    uniform float spotlight_thetaCone;
+    uniform float spotlight_cutOff;
+
     uniform float shininess;
 
     varying vec3 N_for_frag;
@@ -314,8 +366,8 @@ input:checked + .slider:before {
             vec4  positional_specular = Ks1 * positionalSpecularProduct;
             if (dot(L_positional_for_frag, N_for_frag) < 0.0) {
                 positional_specular = vec4(0.0, 0.0, 0.0, 1.0);
-                }
-
+            }
+                    //  IMPLEMENT ATTENUATION
             vec4 positionalColor = (positional_ambient + positional_diffuse + positional_specular);
             //DIRECTIONAL LIGHT
             vec3 H_directional = normalize( D_for_frag + E_for_frag);
@@ -329,15 +381,58 @@ input:checked + .slider:before {
             }
 
             vec4 directionalColor = (directional_ambient + directional_diffuse + directional_specular);
+
+
+            //SPOTLIGHT
+
+            float spotlight_intensity_multiplier;
+            vec3 C= normalize(spotlight_coneDirection);
+            //s= vector from the spotlight source towards the surface
+            vec3 s= -L_spotlight_for_frag;
+            //check if the cone direction and the direction towards the surface point are concordant
+            if (dot(s,C) <= 0.0) {
+                spotlight_intensity_multiplier =0.0;
+            }
+            else{
+                float phi_angle= acos(dot(s,C));
+                // check if the surface point is outside the cone of projected light
+                if(degrees(phi_angle) > spotlight_thetaCone){
+                   spotlight_intensity_multiplier = 0.0;
+                }
+                else{
+                    spotlight_intensity_multiplier= pow(cos(phi_angle), spotlight_cutOff);
+                }
+            }
+            // computing vectors with the emmbedded intensity of the spotlight (! not normalized in order to preserve the intensity information)
+            vec3 L_spotlight_for_frag_prime= L_spotlight_for_frag * spotlight_intensity_multiplier;
+
+            vec3 H_spotlight_prime = normalize(L_spotlight_for_frag_prime + E_for_frag);
+            vec4 spotlight_ambient = spotlightAmbientProduct;
+            float Kd3 = max(dot(L_spotlight_for_frag_prime, N_for_frag), 0.0);
+            vec4  spotlight_diffuse = Kd3 * spotlightDiffuseProduct;
+            float Ks3 = pow(max(dot(N_for_frag, H_spotlight_prime), 0.0), shininess);
+            vec4  spotlight_specular = Ks3 * spotlightSpecularProduct;
+            if (dot(L_spotlight_for_frag_prime, N_for_frag) < 0.0) {
+                spotlight_specular = vec4(0.0, 0.0, 0.0, 1.0);
+            }
+
+            vec4 spotlightColor = (spotlight_ambient + spotlight_diffuse + spotlight_specular);
+                    //  IMPLEMENT ATTENUATION
+
             //FINALLY
             vec4 finalColor= vec4(0.0,0.0,0.0,1.0);
-            if(flagPositionalLight)
+            if(flagPositionalLight){
                 finalColor= finalColor + positionalColor;
-            if(flagDirectionalLight)
+            }
+            if(flagDirectionalLight){
                 finalColor= finalColor + directionalColor;
-            //SAME FOR SPOTLIGHT CONTRIBUTION
-            finalColor.a=1.0;
+            }
+             if(flagSpotlightLight){
+            finalColor= finalColor + spotlightColor;
+            }
 
+            finalColor.a=1.0;
+            // IMPLEMENT GAMMA CORRECTION
             gl_FragColor = (finalColor * fColor) * (texture2D(Tex0, fTexCoord)*texture2D(Tex1, fTexCoord));
 
         };
