@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+
+attribute  vec4 vPosition;
+attribute  vec4 vColor;
+varying vec4 fColor;
+
+uniform vec3 theta;
+uniform vec3 translate;
+uniform vec3 scale;
+
+void main()
+{
+    // Compute the sines and cosines of theta for each of
+    //   the three axes in one computation.
+    vec3 angles = radians( theta );
+    vec3 c = cos( angles );
+    vec3 s = sin( angles );
+
+    // Remeber: thse matrices are column-major
+    mat4 rx = mat4( 1.0,  0.0,  0.0, 0.0,
+		    0.0,  c.x,  s.x, 0.0,
+		    0.0, -s.x,  c.x, 0.0,
+		    0.0,  0.0,  0.0, 1.0 );
+
+    mat4 ry = mat4( c.y, 0.0, -s.y, 0.0,
+		    0.0, 1.0,  0.0, 0.0,
+		    s.y, 0.0,  c.y, 0.0,
+		    0.0, 0.0,  0.0, 1.0 );
+
+    mat4 rz = mat4( c.z, s.z, 0.0, 0.0,
+		    -s.z,  c.z, 0.0, 0.0,
+		    0.0,  0.0, 1.0, 0.0,
+		    0.0,  0.0, 0.0, 1.0 );
+
+    mat4 ms = mat4( scale.x, 0.0, 0.0, 0.0,
+		    0.0,  scale.y, 0.0, 0.0,
+		    0.0,  0.0, scale.z, 0.0,
+		    0.0,  0.0, 0.0, 1.0 );
+			
+	mat4 t = mat4( 1.0, 0.0, 0.0, 0.0,
+		    0.0,  1.0, 0.0, 0.0,
+		    0.0,  0.0, 1.0, 0.0,
+		    translate.x,  translate.y, translate.z, 1.0 );
+	
+	fColor = vColor;
+    gl_Position = rz * ry * rx * t * ms * vPosition;
+    gl_Position.z = -gl_Position.z;
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+
+precision mediump float;
+
+varying vec4 fColor;
+
+void
+main()
+{
+    gl_FragColor = fColor;
+}
+</script>
+
+<script type="text/javascript" src="../Common/webgl-utils.js"></script>
+<script type="text/javascript" src="../Common/initShaders.js"></script>
+<script type="text/javascript" src="../Common/MV.js"></script>
+<script type="text/javascript" src="Solution20170314_1.js"></script>
+
+<body>
+<canvas id="gl-canvas" width="512"" height="512">
+Oops ... your browser doesn't support the HTML5 canvas element
+</canvas>
+<div>
+rotation speed  0 <input id="slider" type="range"
+ min= "0" max= "10" step = "1" value = "0" />
+ 10
+</div>
+<div>
+X translation  -1 <input id="sliderx" type="range"
+ min= "-0.5" max= "0.5" step = "0.1" value = "0" />
+ 1
+</div>
+<div>
+Y translation  -1 <input id="slidery" type="range"
+ min= "-0.5" max= "0.5" step = "0.1" value = "0" />
+ 1
+</div>
+<div>
+Z translation  -1 <input id="sliderz" type="range"
+ min= "-0.5" max= "0.5" step = "0.1" value = "0" />
+ 1
+</div>
+<div>
+X scale  0 <input id="slidersx" type="range"
+ min= "0" max= "2" step = "0.1" value = "1" />
+ 2
+</div>
+<div>
+Y scale  0 <input id="slidersy" type="range"
+ min= "0" max= "2" step = "0.1" value = "1" />
+ 2
+</div>
+<div>
+Z scale  0 <input id="slidersz" type="range"
+ min= "0" max= "2" step = "0.1" value = "1" />
+ 2
+</div><br/>
+
+<button id= "xButton">Rotate X</button>
+<button id= "yButton">Rotate Y</button>
+<button id= "zButton">Rotate Z</button>
+
+</body>
+</html>

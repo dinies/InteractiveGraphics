@@ -73,6 +73,7 @@ window.onload = function init()
     document.getElementById( "xButton" ).onclick = function () {
         axis = xAxis;
     };
+
     document.getElementById( "yButton" ).onclick = function () {
         axis = yAxis;
     };
