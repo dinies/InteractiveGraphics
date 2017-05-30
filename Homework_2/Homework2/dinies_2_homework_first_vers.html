@@ -1,0 +1,168 @@
+  <!DOCTYPE html>
+  <html>
+  <head>
+   <meta charset="utf-8"/>
+          <style>
+              .button {
+                  display: inline-block;
+                  border-radius: 2px;
+                  background-color: #0066ff;
+                  border: none;
+                  color: #FFFFFF;
+                  text-align: center;
+                  font-size: 10px;
+                  padding: 6px;
+                  width: 120px;
+                  transition: all 0.1s;
+                  cursor: pointer;
+                  margin: 1px;
+              }
+          
+          .button span {
+              cursor: pointer;
+              display: inline-block;
+              position: relative;
+              transition: 0.5s;
+          }
+          
+          .button span:after {
+              content: '\00bb';
+              position: absolute;
+              opacity: 0;
+              top: 0;
+              right: -20px;
+              transition: 0.5s;
+          }
+          
+          .button:hover span {
+              padding-right: 25px;
+          }
+          
+          .button:hover span:after {
+              opacity: 1;
+              right: 0;
+          }
+          
+          .switch {
+              position: relative;
+              display: inline-block;
+              width: 60px;
+              height: 34px;
+          }
+          
+          .switch input {display:none;}
+          
+          .slider {
+              position: absolute;
+              cursor: pointer;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              background-color: #ccc;
+              -webkit-transition: .4s;
+              transition: .4s;
+          }
+          
+          .slider:before {
+              position: absolute;
+              content: "";
+              height: 26px;
+              width: 26px;
+              left: 4px;
+              bottom: 4px;
+              background-color: white;
+              -webkit-transition: .4s;
+              transition: .4s;
+          }
+          
+          input:checked + .slider {
+              background-color: #2196F3;
+          }
+          
+          input:focus + .slider {
+              box-shadow: 0 0 1px #2196F3;
+          }
+          
+          input:checked + .slider:before {
+              -webkit-transform: translateX(26px);
+              -ms-transform: translateX(26px);
+              transform: translateX(26px);
+          }
+          
+          /* Rounded sliders */
+          .slider.round {
+              border-radius: 34px;
+          }
+          
+          .slider.round:before {
+              border-radius: 50%;
+          }
+          
+          
+              </style>
+      </head>
+
+       <button class="button" style="vertical-align:middle" id = "ButtonX"><span>Rotate X</span></button>
+    <button class="button" style="vertical-align:middle" id = "ButtonY"><span>Rotate Y</span></button>
+    <button class="button" style="vertical-align:middle" id = "ButtonZ"><span>Rotate Z</span></button>
+
+      <br>
+    <div><p> Evolution :</p>
+        <label class="switch">
+            <input type="checkbox">
+                <div class="slider round" id = "ButtonE"></div>
+                </label>
+    </div>
+    <br>
+
+
+    <br>
+    <div><p> Rotation :</p>
+        <label class="switch">
+            <input type="checkbox">
+                <div class="slider round" id = "ButtonT"></div>
+                </label>
+    </div>
+    <br>
+
+      
+  <script id="vertex-shader" type="x-shader/x-vertex">
+  attribute  vec4 vPosition;
+  attribute  vec4 vColor;
+  varying vec4 fColor;
+
+  uniform mat4 modelViewMatrix;
+  uniform mat4 projectionMatrix;
+
+  void main()
+  {
+      fColor = vColor;
+      gl_Position = projectionMatrix * modelViewMatrix * vPosition;
+  }
+  </script>
+
+  <script id="fragment-shader" type="x-shader/x-fragment">
+
+  precision mediump float;
+
+  varying  vec4 fColor;
+
+  void main()
+  {
+      gl_FragColor = fColor;
+  }
+  </script>
+
+  <script type="text/javascript" src="../Common/webgl-utils.js"></script>
+  <script type="text/javascript" src="../Common/initShaders.js"></script>
+  <script type="text/javascript" src="../Common/MV.js"></script>
+  <script type="text/javascript" src="dinies_2_homework_first_vers.js"></script>
+
+
+  <body>
+  <canvas id="gl-canvas" width="512"" height="512">
+  Oops ... your browser doesn't support the HTML5 canvas element
+  </canvas>
+  </body>
+  </html>
