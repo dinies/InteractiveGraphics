@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+    <head>
+     <meta charset="utf-8"/>
+    </head>
+    <script id="vertex-shader" type="x-shader/x-vertex">
+        
+        precision mediump float;
+        
+        attribute  vec4 vPosition;
+        attribute  vec4 vColor;
+        attribute  vec2 vTexCoord;
+        
+        varying vec4 fColor;
+        varying vec2 fTexCoord;
+        
+        varying vec3 pos_for_frag;
+        varying vec3 N_for_frag;
+        
+        attribute vec3 vNormal;
+        
+        vec4 ambient, diffuse, specular;
+        
+        uniform vec4 positionalAmbientProduct;
+        uniform vec4 positionalDiffuseProduct;
+        uniform vec4 positionalSpecularProduct;
+        uniform vec4 positionalLightPosition;
+        
+        
+        uniform vec4 directionalAmbientProduct;
+        uniform vec4 directionalSpecularProduct;
+        uniform vec4 directionalDiffuseProduct;
+        uniform vec4 directionalLightPosition;
+        
+        
+        uniform vec4 spotlightAmbientProduct;
+        uniform vec4 spotlightSpecularProduct;
+        uniform vec4 spotlightDiffuseProduct;
+        uniform vec4 spotlightLightPosition;
+        
+        
+        uniform vec3 spotlight_coneDirection;
+        uniform float spotlight_thetaCone;
+        uniform float spotlight_cutOff;
+        
+        uniform float shininess;
+        
+        uniform float constant_attenuation;
+        uniform float linear_attenuation;
+        uniform float quadratic_attenuation;
+        
+        uniform bool flagChangeShading;
+        uniform bool flagPositionalLight;
+        uniform bool flagDirectionalLight;
+        uniform bool flagSpotlightLight;
+        uniform bool flagRandomTexture;
+        
+        uniform mat4 projectionMatrix;
+        uniform mat4 modelViewMatrix;
+        
+        
+        void main()
+        {
+            //PHONG
+            //pos = vector from the eye towards the vertex (counter-intuitive
+            vec3 pos = -(modelViewMatrix * vPosition).xyz;    
+            vec4 NN = vec4(vNormal,0);
+            N_for_frag = normalize((modelViewMatrix * NN).xyz); 
+            pos_for_frag= pos;
+            fColor= vColor;
+            gl_Position = projectionMatrix * modelViewMatrix * vPosition;
+            gl_Position.z = -gl_Position.z;
+            fTexCoord = vTexCoord;
+        }
+    </script>
+    
+    <script id="fragment-shader" type="x-shader/x-fragment">
+        
+        precision mediump float;
+        
+        varying vec4 fColor;
+        varying  vec2 fTexCoord;
+        uniform bool flagChangeShading;
+        
+        
+        uniform bool flagPositionalLight;
+        uniform bool flagDirectionalLight;
+        uniform bool flagSpotlightLight;
+        
+        
+        uniform sampler2D Tex0;
+        uniform sampler2D Tex1;
+        uniform sampler2D Tex2;
+        
+        
+        uniform vec4 positionalAmbientProduct;
+        uniform vec4 positionalDiffuseProduct;
+        uniform vec4 positionalSpecularProduct;
+        uniform vec4 positionalLightPosition;
+        
+        
+        uniform vec4 directionalAmbientProduct;
+        uniform vec4 directionalDiffuseProduct;
+        uniform vec4 directionalSpecularProduct;
+        uniform vec4 directionalLightPosition;
+        
+        
+        uniform vec4 spotlightAmbientProduct;
+        uniform vec4 spotlightSpecularProduct;
+        uniform vec4 spotlightDiffuseProduct;
+        uniform vec4 spotlightLightPosition;
+        
+        
+        
+        uniform vec3 spotlight_coneDirection;
+        uniform float spotlight_thetaCone;
+        uniform float spotlight_cutOff;
+        
+        uniform float shininess;
+        
+        uniform float constant_attenuation;
+        uniform float linear_attenuation;
+        uniform float quadratic_attenuation;
+        
+        varying vec3 pos_for_frag;
+        varying vec3 N_for_frag;
+        
+        uniform bool flagRandomTexture;
+        
+        
+        void
+        main()
+        {
+                //PHONG
+                
+                
+            vec3 E_for_frag =  -normalize(pos_for_frag);
+                //POSITIONAL LIGHT
+            vec3 positionalLight = positionalLightPosition.xyz;
+                
+            vec3 L_positional_for_frag =  normalize(positionalLight - pos_for_frag);
+                
+            vec3 H_positional = normalize(L_positional_for_frag + E_for_frag);
+                
+            vec4 positional_ambient = positionalAmbientProduct;
+                
+            float Kd1 = max(dot(L_positional_for_frag, N_for_frag), 0.0);
+                
+            vec4  positional_diffuse = Kd1 * positionalDiffuseProduct;
+                
+            float Ks1 = pow(max(dot(N_for_frag, H_positional), 0.0), shininess);
+                
+            vec4  positional_specular = Ks1 * positionalSpecularProduct;
+                
+            if (dot(L_positional_for_frag, N_for_frag) < 0.0) {
+                    positional_specular = vec4(0.0, 0.0, 0.0, 1.0);
+            }
+                
+                
+            vec3 dist_positional=(positionalLight - pos_for_frag);
+            float dist_norm_positional = sqrt(pow(dist_positional.x , 2.0) + pow(dist_positional.y, 2.0) + pow(dist_positional.z, 2.0));
+            float attenuation_positional= 1.0/ ( constant_attenuation + (linear_attenuation* dist_norm_positional) + (quadratic_attenuation* pow(dist_norm_positional, 2.0)) );
+                
+            vec4 positionalColor = positional_ambient + attenuation_positional* ( positional_diffuse + positional_specular);
+                
+            //DIRECTIONAL LIGHT
+            vec3 D_for_frag=  normalize(directionalLightPosition.xyz);
+                
+            vec3 H_directional = normalize( D_for_frag + E_for_frag);
+                
+            vec4 directional_ambient= directionalAmbientProduct;
+                
+            float Kd2 = max(dot(D_for_frag, N_for_frag), 0.0);
+                
+            vec4 directional_diffuse = Kd2 * directionalDiffuseProduct;
+                
+            float Ks2 =  pow(max(dot(N_for_frag, H_directional), 0.0), shininess);
+                
+            vec4  directional_specular = Ks2 * directionalSpecularProduct;
+                
+            if (dot(D_for_frag, N_for_frag) < 0.0) {
+                 directional_specular = vec4(0.0, 0.0, 0.0, 1.0);
+            }
+                
+            vec4 directionalColor = (directional_ambient + directional_diffuse + directional_specular);
+                
+                
+            //SPOTLIGHT
+                
+            vec3 spotlightLight = spotlightLightPosition.xyz;
+                
+            vec3 L_spotlight_for_frag= normalize( spotlightLight - pos_for_frag);
+                
+            float spotlight_intensity_multiplier;
+            vec3 C= normalize(spotlight_coneDirection);
+                //s= vector from the spotlight source towards the surface
+            vec3 s= -L_spotlight_for_frag;
+                //check if the cone direction and the direction towards the surface point are concordant
+                
+                //check if the overall direction is concorde, otherwise the light cone will be pointed in the other direction w.t.r. the surface.
+            if( dot(s,C) <= 0.0){
+                spotlight_intensity_multiplier = 0.0;
+            }
+            else{
+                float phi_angle= acos(dot(s,C));
+                // check if the surface point is outside the cone of projected light
+                if(degrees(phi_angle) > spotlight_thetaCone){
+                    spotlight_intensity_multiplier = 0.0;
+                }
+                else{
+                    spotlight_intensity_multiplier= pow(cos(phi_angle), spotlight_cutOff);
+                }
+            }
+                
+            vec3 H_spotlight = normalize(L_spotlight_for_frag + E_for_frag);
+                
+            vec4 spotlight_ambient = spotlightAmbientProduct;
+            float Kd3 = max(dot(L_spotlight_for_frag, N_for_frag), 0.0);
+            vec4  spotlight_diffuse = Kd3 * spotlightDiffuseProduct;
+            float Ks3 = pow(max(dot(N_for_frag, H_spotlight), 0.0), shininess);
+            vec4  spotlight_specular = Ks3 * spotlightSpecularProduct;
+            if (dot(L_spotlight_for_frag, N_for_frag) < 0.0) {
+                spotlight_specular = vec4(0.0, 0.0, 0.0, 1.0);
+            }
+                
+                
+            vec3 dist_spotlight=(spotlightLight - pos_for_frag);
+            float dist_norm_spotlight = sqrt(pow(dist_spotlight.x , 2.0) + pow(dist_spotlight.y, 2.0) + pow(dist_spotlight.z, 2.0));
+            float attenuation_spotlight= 1.0/ ( constant_attenuation + (linear_attenuation* dist_norm_spotlight) + (quadratic_attenuation* pow(dist_norm_spotlight, 2.0)) );
+                
+                
+            vec4 spotlightColor = spotlight_ambient + (spotlight_intensity_multiplier * attenuation_spotlight *(spotlight_diffuse + spotlight_specular));
+                
+                
+                
+            vec4 finalColor= vec4(0.0,0.0,0.0,1.0);
+            if(flagPositionalLight){
+                finalColor= finalColor + positionalColor;
+            }
+            if(flagDirectionalLight){
+                finalColor= finalColor + directionalColor;
+            }
+            if(flagSpotlightLight){
+                finalColor= finalColor + spotlightColor;
+            }
+                
+            finalColor.a=1.0;
+                
+            if(flagRandomTexture){
+                gl_FragColor = (finalColor * fColor) * ( texture2D(Tex0, fTexCoord) + texture2D(Tex1, fTexCoord) + texture2D(Tex2, fTexCoord));
+            }
+            else{
+                gl_FragColor = (finalColor * fColor) * (texture2D(Tex0, fTexCoord) + texture2D(Tex1, fTexCoord));
+            }
+        }
+    </script>
+    
+    <script type="text/javascript" src="../Common/webgl-utils.js"></script>
+    <script type="text/javascript" src="../Common/initShaders.js"></script>
+    <script type="text/javascript" src="../Common/MV.js"></script>
+    <script type="text/javascript" src="world.js"></script>
+    
+    <body>
+        <canvas id="gl-canvas" width="1024" height="1024">
+            Oops ... your browser doesn't support the HTML5 canvas element
+        </canvas>
+    </body>
+</html>
