@@ -2,7 +2,151 @@
 <html>
     <head>
      <meta charset="utf-8"/>
+     <style>
+            .button {
+                display: inline-block;
+                border-radius: 2px;
+                background-color: #0066ff;
+                border: none;
+                color: #FFFFFF;
+                text-align: center;
+                font-size: 10px;
+                padding: 6px;
+                width: 120px;
+                transition: all 0.1s;
+                cursor: pointer;
+                margin: 1px;
+            }
+        
+        .button span {
+            cursor: pointer;
+            display: inline-block;
+            position: relative;
+            transition: 0.5s;
+        }
+        
+        .button span:after {
+            content: '\00bb';
+            position: absolute;
+            opacity: 0;
+            top: 0;
+            right: -20px;
+            transition: 0.5s;
+        }
+        
+        .button:hover span {
+            padding-right: 25px;
+        }
+        
+        .button:hover span:after {
+            opacity: 1;
+            right: 0;
+        }
+        
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .switch input {display:none;}
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+        }
+        
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        
+        input:focus + .slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+        
+        input:checked + .slider:before {
+            -webkit-transform: translateX(26px);
+            -ms-transform: translateX(26px);
+            transform: translateX(26px);
+        }
+        
+        /* Rounded sliders */
+        .slider.round {
+            border-radius: 34px;
+        }
+        
+        .slider.round:before {
+            border-radius: 50%;
+        }
+        
+        
+            </style>
     </head>
+
+    <!-- <button class="button" style="vertical-align:middle" id = "ButtonX"><span>Rotate X</span></button> -->
+    <!-- <button class="button" style="vertical-align:middle" id = "ButtonY"><span>Rotate Y</span></button> -->
+    <!-- <button class="button" style="vertical-align:middle" id = "ButtonZ"><span>Rotate Z</span></button> -->
+    <!-- <button class="button" style="vertical-align:middle" id = "ButtonT"><span>Toggle Rotation</span></button> -->
+  
+  <div>
+zNear .01<input id="zNearSlider" type="range"
+ min=".01" max="3" step="0.1" value="0.3" />
+ 3
+</div>
+<div>
+zFar 3<input id="zFarSlider" type="range"
+ min="3" max="10" step="3.0" value="3" />
+ 10
+</div>
+<div>
+xCoord -1.0<input id="xcoordSlider" type="range"
+ min="-1.0" max="1.0" step="0.01" value="0.0" />
+ 1.0
+</div>
+
+yCoord -1.0<input id="ycoordSlider" type="range"
+ min="-1.0" max="1.0" step="0.01" value="-0.3" />
+ 1.0
+</div>
+
+<div>
+zCoord -1.0<input id="zcoordSlider" type="range"
+ min="-1.0" max="1.0" step="0.01" value="1.0" />
+ 1.0
+</div>
+
+<div>
+fov 10<input id="fovSlider" type="range"
+ min="10" max="120" step="5" value="45" />
+ 120
+</div>
+<div>
+aspect 0.5<input id="aspectSlider" type="range"
+ min="0.5" max="2" step="0.1" value="1" />
+ 2
+</div>
+
+
     <script id="vertex-shader" type="x-shader/x-vertex">
         
         precision mediump float;
@@ -21,16 +165,16 @@
         
         vec4 ambient, diffuse, specular;
         
-        uniform vec4 positionalAmbientProduct;
-        uniform vec4 positionalDiffuseProduct;
-        uniform vec4 positionalSpecularProduct;
-        uniform vec4 positionalLightPosition;
+        // uniform vec4 positionalAmbientProduct;
+        // uniform vec4 positionalDiffuseProduct;
+        // uniform vec4 positionalSpecularProduct;
+        // uniform vec4 positionalLightPosition;
         
         
-        uniform vec4 directionalAmbientProduct;
-        uniform vec4 directionalSpecularProduct;
-        uniform vec4 directionalDiffuseProduct;
-        uniform vec4 directionalLightPosition;
+        // uniform vec4 directionalAmbientProduct;
+        // uniform vec4 directionalSpecularProduct;
+        // uniform vec4 directionalDiffuseProduct;
+        // uniform vec4 directionalLightPosition;
         
         
         uniform vec4 spotlightAmbientProduct;
@@ -49,11 +193,11 @@
         uniform float linear_attenuation;
         uniform float quadratic_attenuation;
         
-        uniform bool flagChangeShading;
-        uniform bool flagPositionalLight;
-        uniform bool flagDirectionalLight;
-        uniform bool flagSpotlightLight;
-        uniform bool flagRandomTexture;
+        // uniform bool flagChangeShading;
+        // uniform bool flagPositionalLight;
+        // uniform bool flagDirectionalLight;
+        // uniform bool flagSpotlightLight;
+        // uniform bool flagRandomTexture;
         
         uniform mat4 projectionMatrix;
         uniform mat4 modelViewMatrix;
@@ -70,7 +214,7 @@
             fColor= vColor;
             gl_Position = projectionMatrix * modelViewMatrix * vPosition;
             gl_Position.z = -gl_Position.z;
-            fTexCoord = vTexCoord;
+            // fTexCoord = vTexCoord;
         }
     </script>
     
@@ -79,30 +223,30 @@
         precision mediump float;
         
         varying vec4 fColor;
-        varying  vec2 fTexCoord;
-        uniform bool flagChangeShading;
+        // varying  vec2 fTexCoord;
+        // uniform bool flagChangeShading;
         
         
-        uniform bool flagPositionalLight;
-        uniform bool flagDirectionalLight;
+        // uniform bool flagPositionalLight;
+        // uniform bool flagDirectionalLight;
         uniform bool flagSpotlightLight;
         
         
-        uniform sampler2D Tex0;
-        uniform sampler2D Tex1;
-        uniform sampler2D Tex2;
+        // uniform sampler2D Tex0;
+        // uniform sampler2D Tex1;
+        // uniform sampler2D Tex2;
         
         
-        uniform vec4 positionalAmbientProduct;
-        uniform vec4 positionalDiffuseProduct;
-        uniform vec4 positionalSpecularProduct;
-        uniform vec4 positionalLightPosition;
+        // uniform vec4 positionalAmbientProduct;
+        // uniform vec4 positionalDiffuseProduct;
+        // uniform vec4 positionalSpecularProduct;
+        // uniform vec4 positionalLightPosition;
         
         
-        uniform vec4 directionalAmbientProduct;
-        uniform vec4 directionalDiffuseProduct;
-        uniform vec4 directionalSpecularProduct;
-        uniform vec4 directionalLightPosition;
+        // uniform vec4 directionalAmbientProduct;
+        // uniform vec4 directionalDiffuseProduct;
+        // uniform vec4 directionalSpecularProduct;
+        // uniform vec4 directionalLightPosition;
         
         
         uniform vec4 spotlightAmbientProduct;
@@ -125,7 +269,7 @@
         varying vec3 pos_for_frag;
         varying vec3 N_for_frag;
         
-        uniform bool flagRandomTexture;
+        // uniform bool flagRandomTexture;
         
         
         void
@@ -135,54 +279,54 @@
                 
                 
             vec3 E_for_frag =  -normalize(pos_for_frag);
-                //POSITIONAL LIGHT
-            vec3 positionalLight = positionalLightPosition.xyz;
+            //     //POSITIONAL LIGHT
+            // vec3 positionalLight = positionalLightPosition.xyz;
                 
-            vec3 L_positional_for_frag =  normalize(positionalLight - pos_for_frag);
+            // vec3 L_positional_for_frag =  normalize(positionalLight - pos_for_frag);
                 
-            vec3 H_positional = normalize(L_positional_for_frag + E_for_frag);
+            // vec3 H_positional = normalize(L_positional_for_frag + E_for_frag);
                 
-            vec4 positional_ambient = positionalAmbientProduct;
+            // vec4 positional_ambient = positionalAmbientProduct;
                 
-            float Kd1 = max(dot(L_positional_for_frag, N_for_frag), 0.0);
+            // float Kd1 = max(dot(L_positional_for_frag, N_for_frag), 0.0);
                 
-            vec4  positional_diffuse = Kd1 * positionalDiffuseProduct;
+            // vec4  positional_diffuse = Kd1 * positionalDiffuseProduct;
                 
-            float Ks1 = pow(max(dot(N_for_frag, H_positional), 0.0), shininess);
+            // float Ks1 = pow(max(dot(N_for_frag, H_positional), 0.0), shininess);
                 
-            vec4  positional_specular = Ks1 * positionalSpecularProduct;
+            // vec4  positional_specular = Ks1 * positionalSpecularProduct;
                 
-            if (dot(L_positional_for_frag, N_for_frag) < 0.0) {
-                    positional_specular = vec4(0.0, 0.0, 0.0, 1.0);
-            }
+            // if (dot(L_positional_for_frag, N_for_frag) < 0.0) {
+            //         positional_specular = vec4(0.0, 0.0, 0.0, 1.0);
+            // }
                 
                 
-            vec3 dist_positional=(positionalLight - pos_for_frag);
-            float dist_norm_positional = sqrt(pow(dist_positional.x , 2.0) + pow(dist_positional.y, 2.0) + pow(dist_positional.z, 2.0));
-            float attenuation_positional= 1.0/ ( constant_attenuation + (linear_attenuation* dist_norm_positional) + (quadratic_attenuation* pow(dist_norm_positional, 2.0)) );
+            // vec3 dist_positional=(positionalLight - pos_for_frag);
+            // float dist_norm_positional = sqrt(pow(dist_positional.x , 2.0) + pow(dist_positional.y, 2.0) + pow(dist_positional.z, 2.0));
+            // float attenuation_positional= 1.0/ ( constant_attenuation + (linear_attenuation* dist_norm_positional) + (quadratic_attenuation* pow(dist_norm_positional, 2.0)) );
                 
-            vec4 positionalColor = positional_ambient + attenuation_positional* ( positional_diffuse + positional_specular);
+            // vec4 positionalColor = positional_ambient + attenuation_positional* ( positional_diffuse + positional_specular);
                 
-            //DIRECTIONAL LIGHT
-            vec3 D_for_frag=  normalize(directionalLightPosition.xyz);
+            // //DIRECTIONAL LIGHT
+            // vec3 D_for_frag=  normalize(directionalLightPosition.xyz);
                 
-            vec3 H_directional = normalize( D_for_frag + E_for_frag);
+            // vec3 H_directional = normalize( D_for_frag + E_for_frag);
                 
-            vec4 directional_ambient= directionalAmbientProduct;
+            // vec4 directional_ambient= directionalAmbientProduct;
                 
-            float Kd2 = max(dot(D_for_frag, N_for_frag), 0.0);
+            // float Kd2 = max(dot(D_for_frag, N_for_frag), 0.0);
                 
-            vec4 directional_diffuse = Kd2 * directionalDiffuseProduct;
+            // vec4 directional_diffuse = Kd2 * directionalDiffuseProduct;
                 
-            float Ks2 =  pow(max(dot(N_for_frag, H_directional), 0.0), shininess);
+            // float Ks2 =  pow(max(dot(N_for_frag, H_directional), 0.0), shininess);
                 
-            vec4  directional_specular = Ks2 * directionalSpecularProduct;
+            // vec4  directional_specular = Ks2 * directionalSpecularProduct;
                 
-            if (dot(D_for_frag, N_for_frag) < 0.0) {
-                 directional_specular = vec4(0.0, 0.0, 0.0, 1.0);
-            }
+            // if (dot(D_for_frag, N_for_frag) < 0.0) {
+            //      directional_specular = vec4(0.0, 0.0, 0.0, 1.0);
+            // }
                 
-            vec4 directionalColor = (directional_ambient + directional_diffuse + directional_specular);
+            // vec4 directionalColor = (directional_ambient + directional_diffuse + directional_specular);
                 
                 
             //SPOTLIGHT
@@ -234,24 +378,25 @@
                 
                 
             vec4 finalColor= vec4(0.0,0.0,0.0,1.0);
-            if(flagPositionalLight){
-                finalColor= finalColor + positionalColor;
-            }
-            if(flagDirectionalLight){
-                finalColor= finalColor + directionalColor;
-            }
-            if(flagSpotlightLight){
-                finalColor= finalColor + spotlightColor;
-            }
+            // if(flagPositionalLight){
+            //     finalColor= finalColor + positionalColor;
+            // }
+            // if(flagDirectionalLight){
+            //     finalColor= finalColor + directionalColor;
+            // }
+            // if(flagSpotlightLight){
+            finalColor= finalColor + spotlightColor;
+            // }
                 
             finalColor.a=1.0;
                 
-            if(flagRandomTexture){
-                gl_FragColor = (finalColor * fColor) * ( texture2D(Tex0, fTexCoord) + texture2D(Tex1, fTexCoord) + texture2D(Tex2, fTexCoord));
-            }
-            else{
-                gl_FragColor = (finalColor * fColor) * (texture2D(Tex0, fTexCoord) + texture2D(Tex1, fTexCoord));
-            }
+            // if(flagRandomTexture){
+            //     gl_FragColor = (finalColor * fColor) * ( texture2D(Tex0, fTexCoord) + texture2D(Tex1, fTexCoord) + texture2D(Tex2, fTexCoord));
+            // }
+            // else{
+            gl_FragColor = (finalColor * fColor) ;
+            //append to the previous line for textures  * (texture2D(Tex0, fTexCoord) + texture2D(Tex1, fTexCoord));
+            // }
         }
     </script>
     
