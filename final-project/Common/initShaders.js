@@ -40,7 +40,6 @@ function initShaders( gl, vertexShaderId, fragmentShaderId )
             return -1;
         }
     }
-
     var program = gl.createProgram();
     gl.attachShader( program, vertShdr );
     gl.attachShader( program, fragShdr );
