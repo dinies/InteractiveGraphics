@@ -93,8 +93,9 @@ var far = 2.0;
 var  fovy = 45.0;  // Field-of-view in Y direction angle (in degrees)
 var  aspect; 
 var eye = vec3(0.0, 0.3, 1.0);
-const at = vec3(0.0, 0.0, 0.0);
+var at = vec3(0.0, 0.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
+var player;
 
 var spotlight_lightPosition;
 var spotlight_lightAmbient = vec4(1.0, 1.0, 1.0, 1.0 );
@@ -304,6 +305,8 @@ function moveCallback(e){
             0;
     console.log('mov_X'+ movementX);
     console.log('mov_Y'+ movementY);
+    player.roll(movementY);
+    player.pan(movementX);
 }
 
 
@@ -313,11 +316,151 @@ function changePointerLock()
     if (document.pointerLockElement === canvas||
         document.mozPointerLockElement === canvas){ 
             document.addEventListener("mousemove", moveCallback, false);
+            player.lockedState= true;
        } else {
             document.removeEventListener("mousemove", moveCallback, false);
+            player.lockedState= false;
+            player.forwardKey= false;
+            player.backwardKey= false;
+            player.leftKey= false;
+            player.rightKey= false;
        }
 }
 
+function Player(e, a){
+    this.eye= e;
+    this.at= a;
+    this.forwardKey= false;
+    this.backwardKey=false;
+    this.leftKey=false;
+    this.rightKey=false;
+    this.lockedState= false;
+    this.sagittal_axis= function(){
+        var vec = subtract(this.at, this.eye); 
+        vec[1] = 0 ;
+        var s  = normalize(vec);
+        return s;
+    }
+    this.compute_at_rotation= function( rot_matrix){
+        var old_at= vec4( this.at[0], this.at[1], this.at[2], 1);
+        var sag = this.sagittal_axis();
+        var z= vec3( 0.0, 0.0, 1.0);
+        var z_norm= Math.sqrt( z[0]*z[0] + z[1]*z[1] + z[2]*z[2] );
+        var sag_norm= Math.sqrt( sag[0]*sag[0] + sag[1]*sag[1] + sag[2]*sag[2] );
+        var phi_rad= Math.acos( dot( sag , z) * ( 1/(z_norm * sag_norm)));
+
+        var c = Math.cos( phi_rad);
+        var s = Math.sin( phi_rad);
+
+        var matA01= mat4(
+               c , 0.0, -s, 0.0,
+               0.0, 1.0, 0.0, 0.0,
+               s , 0.0, c, 0.0,
+               this.eye[0], this.eye[1], this.eye[2], 1.0);
+        var result= mult( matA01 , mult(  rot_matrix,  mult( inverse4( matA01 ),old_at)));
+        this.at = vec3( result[0], result[1], result[2] );
+    }
+    this.roll= function(y_vel){
+        console.log('roll_fun');
+        var ipo = subtract(this.at, this.eye);
+        var x_z_plane_proj= Math.sqrt( ipo[0]*ipo[0] + ipo[2]*ipo[2] );
+        var current_roll_angle_rad= Math.atan2(ipo[1] , x_z_plane_proj );
+        var curr_angle;
+        var theta = 0;
+        var coeff = 1;
+        if (( this.at[1] - this.eye[1]) < 0.0){
+            curr_angle = - ( current_roll_angle_rad * 180.0 / Math.PI);
+        }
+        else{
+            curr_angle = current_roll_angle_rad * 180.0 / Math.PI;
+        }
+
+        if ( (y_vel > 0.0 && curr_angle < 70.0) || ( y_vel <= 0.0 && curr_angle > -70.0)){
+           theta = coeff * y_vel; 
+        }    
+        
+        this.compute_at_rotation( rotateX(theta));
+        console.log('new eye'+this.eye[0]+' '+this.eye[1]+' '+this.eye[2]);
+        console.log('new at'+this.at[0]+' '+this.at[1]+' '+this.at[2]);
+    }
+    this.pan= function(x_vel){
+        console.log('pan_fun');
+        var coeff= 1;
+        var theta= coeff * x_vel;
+        this.compute_at_rotation( rotateY(theta));
+        console.log('new eye'+this.eye[0]+' '+this.eye[1]+' '+this.eye[2]);
+        console.log('new at'+this.at[0]+' '+this.at[1]+' '+this.at[2]);
+    
+    }
+    this.step= function(){
+        console.log('step');
+        if (this.lockedState){
+            var y_axis= vec3( 0.0, 1.0, 0.0);
+            var s= this.sagittal_axis();
+            var coeff= 0.01;
+            //TODO debug thi increments !!
+            var c= vec3( coeff, coeff, coeff); 
+            var shift_axis;
+            var orizontal_axis= cross( s, y_axis);
+            if (this.forwardKey){
+                shift_axis= mult( s, c); 
+                this.eye = add( this.eye, shift_axis);
+                this.at= add( this.at, shift_axis);
+            }
+            if (this.backwardKey){
+                shift_axis= mult(s ,c);
+                this.eye = subtract( this.eye, shift_axis);
+                this.at = subtract( this.at, shift_axis);
+            }
+            if (this.rightKey){
+                shift_axis = mult( orizontal_axis, c);
+                this.eye = add( this.eye, shift_axis);
+                this.at = add( this.at, shift_axis);
+            }
+            if (this.leftKey){
+                shift_axis = mult( orizontal_axis, c);
+                this.eye = subtract(this.eye, shift_axis);
+                this.at = subtract(this.at, shift_axis);
+            }
+        }
+    }
+    this.keyupHook = function(event) {
+        if (this.lockedState) {
+        var keyCode = event.keyCode;
+        if (keyCode == 87) {
+          this.forwardKey = false;
+        }
+        if (keyCode == 83) {
+          this.backwardKey = false;
+        }
+        if (keyCode == 65) {
+          this.leftKey = false;
+       }
+       if (keyCode == 68) {
+         this.rightKey = false;
+       }
+     }
+    }
+
+   this.keydownHook = function(event) {
+          if (this.lockedState) {
+            var keyCode = event.keyCode;
+            if (keyCode == 87) {
+              this.forwardKey = true;
+            }
+            if (keyCode == 83) {
+              this.backwardKey = true;
+            }
+            if (keyCode == 65) {
+              this.leftKey = true;
+            }
+            if (keyCode == 68) {
+              this.rightKey = true;
+            }
+          } 
+     }
+
+}
 
 window.onload = function init() {
     
@@ -357,7 +500,7 @@ window.onload = function init() {
     drawFloor();
     drawPatch();
     colorCube();
-
+    player = new Player(eye, at);
 
 
     var cBuffer = gl.createBuffer();
@@ -468,17 +611,22 @@ window.onload = function init() {
     document.addEventListener('pointerlockchange',changePointerLock, false);
     document.addEventListener('mozpointerlockchange',changePointerLock , false);
     
+    document.onkeydown = function(e) { player.keydownHook(e); };
+    document.onkeyup = function(e) { player.keyupHook(e); };
+
     render();
 }
 
 var render = function() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-   
-    modelView = lookAt(eye, at , up);
+    
+    player.step();
+
+    modelView = lookAt(player.eye, player.at , up);
     projection = perspective(fovy, aspect, near, far);
 
-    spotlight_lightPosition= vec4( eye[0],eye[1],eye[2], 1);
-    spotlight_coneDirection=normalize( vec3( at[0]-eye[0], at[1]-eye[1], at[2]-eye[2]));
+    spotlight_lightPosition= vec4( player.eye[0],player.eye[1],player.eye[2], 1);
+    spotlight_coneDirection=normalize( vec3( player.at[0]-player.eye[0], player.at[1]-player.eye[1], player.at[2]- player.eye[2]));
     
     gl.uniform4fv(gl.getUniformLocation(program, "spotlightLightPosition"),
                   flatten(spotlight_lightPosition));
