@@ -92,7 +92,8 @@ var near = 0.1;
 var far = 2.0;
 var  fovy = 45.0;  // Field-of-view in Y direction angle (in degrees)
 var  aspect; 
-var initial_eye = vec3(0.0, 0.3, -1.0);
+var eye = vec3(0.0, 0.3, 1.0);
+var at = vec3(0.0, 0.0, 0.0);
 const up = vec3(0.0, 1.0, 0.0);
 var player;
 
@@ -326,75 +327,104 @@ function changePointerLock()
        }
 }
 
-function Player(e){
+function Player(e, a){
     this.eye= e;
-    this.pan_angle = 0.0;
-    this.tilt_angle= 0.0;
+    this.at= a;
     this.forwardKey= false;
     this.backwardKey=false;
     this.leftKey=false;
     this.rightKey=false;
     this.lockedState= false;
-    this.get_at_in_world= function(){
-        var pan_angle_rad= this.pan_angle * Math.PI / 180.0;
-        var c_pan  = Math.cos(pan_angle_rad);
-        var s_pan  = Math.sin(pan_angle_rad);
-        var tilt_angle_rad = this.tilt_angle * Math.PI / 180.0;
-        var c_tilt = Math.cos(tilt_angle_rad);
-        var s_tilt = Math.sin(tilt_angle_rad);
-        var A_pan_tilt = mat4(
-            c_pan , 0.0 , -s_pan, 0.0,
-            s_pan*s_tilt, c_tilt , c_pan*s_tilt, 0.0,
-            s_pan*c_tilt, -s_tilt , c_pan*c_tilt, 0.0,
-            this.eye[0] , this.eye[1]  ,this.eye[2] , 1.0 );
-        var z_direction = vec4( 0.0 , 0.0 , 0.1 , 1.0);
-        var new_at = mult( A_pan_tilt, z_direction);
-        new_at= vec3( new_at[0], new_at[1], new_at[2]);
-        return new_at;
+    this.sagittal_axis= function(){
+        var vec = subtract(this.at, this.eye); 
+        vec[1] = 0 ;
+        var s  = normalize(vec);
+        return s;
     }
-    this.pan= function(x_vel){
-        var inc_const= 0.3;
-        this.pan_angle -= inc_const*x_vel;
+    this.compute_at_rotation= function( rot_matrix){
+        var old_at= vec4( this.at[0], this.at[1], this.at[2], 1);
+        var sag = this.sagittal_axis();
+        var z= vec3( 0.0, 0.0, 1.0);
+        var z_norm= Math.sqrt( z[0]*z[0] + z[1]*z[1] + z[2]*z[2] );
+        var sag_norm= Math.sqrt( sag[0]*sag[0] + sag[1]*sag[1] + sag[2]*sag[2] );
+        var phi_rad= Math.acos( dot( sag , z) * ( 1/(z_norm * sag_norm)));
+
+        var c = Math.cos( phi_rad);
+        var s = Math.sin( phi_rad);
+
+        var matA01= mat4(
+               c , 0.0, -s, 0.0,
+               0.0, 1.0, 0.0, 0.0,
+               s , 0.0, c, 0.0,
+               this.eye[0], this.eye[1], this.eye[2], 1.0);
+        var result= mult( matA01 , mult(  rot_matrix,  mult( inverse4( matA01 ),old_at)));
+        this.at = vec3( result[0], result[1], result[2] );
     }
     this.roll= function(y_vel){
-        var inc_const= 0.3;
-        if ( (y_vel > 0.0 && this.tilt_angle < 70.0) || ( y_vel <= 0.0 && this.tilt_angle > -70.0)){
-           this.tilt_angle += inc_const*y_vel;
+        console.log('roll_fun');
+        var ipo = subtract(this.at, this.eye);
+        var x_z_plane_proj= Math.sqrt( ipo[0]*ipo[0] + ipo[2]*ipo[2] );
+        var current_roll_angle_rad= Math.atan2(ipo[1] , x_z_plane_proj );
+        var curr_angle;
+        var theta = 0;
+        var coeff = 1;
+        if (( this.at[1] - this.eye[1]) < 0.0){
+            curr_angle = - ( current_roll_angle_rad * 180.0 / Math.PI);
         }
+        else{
+            curr_angle = current_roll_angle_rad * 180.0 / Math.PI;
+        }
+
+        if ( (y_vel > 0.0 && curr_angle < 70.0) || ( y_vel <= 0.0 && curr_angle > -70.0)){
+           theta = coeff * y_vel; 
+        }    
+        
+        this.compute_at_rotation( rotateX(theta));
+        console.log('new eye'+this.eye[0]+' '+this.eye[1]+' '+this.eye[2]);
+        console.log('new at'+this.at[0]+' '+this.at[1]+' '+this.at[2]);
+    }
+    this.pan= function(x_vel){
+        console.log('pan_fun');
+        var coeff= 1;
+        var theta= coeff * x_vel;
+        this.compute_at_rotation( rotateY(theta));
+        console.log('new eye'+this.eye[0]+' '+this.eye[1]+' '+this.eye[2]);
+        console.log('new at'+this.at[0]+' '+this.at[1]+' '+this.at[2]);
+    
     }
     this.step= function(){
+        console.log('step');
         if (this.lockedState){
-        var coeff= 0.01;
-        var oriz_offset= 0.0;
-        var sagitt_offset= 0.0;
-           if (this.forwardKey){
-              sagitt_offset += coeff;
+            var y_axis= vec3( 0.0, 1.0, 0.0);
+            var s= this.sagittal_axis();
+            var coeff= 0.01;
+            //TODO debug thi increments !!
+            var c= vec3( coeff, coeff, coeff); 
+            var shift_axis;
+            var orizontal_axis= cross( s, y_axis);
+            if (this.forwardKey){
+                shift_axis= mult( s, c); 
+                this.eye = add( this.eye, shift_axis);
+                this.at= add( this.at, shift_axis);
             }
             if (this.backwardKey){
-              sagitt_offset -= coeff;
+                shift_axis= mult(s ,c);
+                this.eye = subtract( this.eye, shift_axis);
+                this.at = subtract( this.at, shift_axis);
             }
             if (this.rightKey){
-              oriz_offset -= coeff;
+                shift_axis = mult( orizontal_axis, c);
+                this.eye = add( this.eye, shift_axis);
+                this.at = add( this.at, shift_axis);
             }
             if (this.leftKey){
-              oriz_offset += coeff;
+                shift_axis = mult( orizontal_axis, c);
+                this.eye = subtract(this.eye, shift_axis);
+                this.at = subtract(this.at, shift_axis);
             }
-        var pan_angle_rad= this.pan_angle * Math.PI / 180.0;
-        var c_pan  = Math.cos(pan_angle_rad);
-        var s_pan  = Math.sin(pan_angle_rad);
-        var A_pan= mat4(
-            c_pan , 0.0 , -s_pan, 0.0,
-            0.0 , 1.0 , 0.0 , 0.0,
-            s_pan , 0.0 , c_pan , 0.0,
-            this.eye[0] , this.eye[1]  ,this.eye[2] , 1.0 );
-        var displacement = vec4( oriz_offset , 0.0 , sagitt_offset , 1.0);
-        var new_eye = mult( A_pan, displacement);
-        new_eye = vec3( new_eye[0], new_eye[1], new_eye[2]);
-        this.eye= new_eye;
-       }
+        }
     }
-
-   this.keyupHook = function(event) {
+    this.keyupHook = function(event) {
         if (this.lockedState) {
         var keyCode = event.keyCode;
         if (keyCode == 87) {
@@ -427,7 +457,7 @@ function Player(e){
             if (keyCode == 68) {
               this.rightKey = true;
             }
-          }
+          } 
      }
 
 }
@@ -470,7 +500,7 @@ window.onload = function init() {
     drawFloor();
     drawPatch();
     colorCube();
-    player = new Player(initial_eye);
+    player = new Player(eye, at);
 
 
     var cBuffer = gl.createBuffer();
@@ -591,13 +621,12 @@ var render = function() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     
     player.step();
-    var at = player.get_at_in_world();
-// get_at_in_world returns 0 0 1 always  --> check if the model is wrong
-    modelView = lookAt(player.eye, at , up);
+
+    modelView = lookAt(player.eye, player.at , up);
     projection = perspective(fovy, aspect, near, far);
 
     spotlight_lightPosition= vec4( player.eye[0],player.eye[1],player.eye[2], 1);
-    spotlight_coneDirection=normalize( vec3( at[0]-player.eye[0], at[1]-player.eye[1], at[2]- player.eye[2]));
+    spotlight_coneDirection=normalize( vec3( player.at[0]-player.eye[0], player.at[1]-player.eye[1], player.at[2]- player.eye[2]));
     
     gl.uniform4fv(gl.getUniformLocation(program, "spotlightLightPosition"),
                   flatten(spotlight_lightPosition));
