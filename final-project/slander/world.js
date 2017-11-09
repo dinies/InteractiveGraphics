@@ -342,15 +342,25 @@ function Player(e){
         var tilt_angle_rad = this.tilt_angle * Math.PI / 180.0;
         var c_tilt = Math.cos(tilt_angle_rad);
         var s_tilt = Math.sin(tilt_angle_rad);
-        var A_pan_tilt = mat4(
-            c_pan , 0.0 , -s_pan, 0.0,
-            s_pan*s_tilt, c_tilt , c_pan*s_tilt, 0.0,
-            s_pan*c_tilt, -s_tilt , c_pan*c_tilt, 0.0,
-            this.eye[0] , this.eye[1]  ,this.eye[2] , 1.0 );
-        var z_direction = vec4( 0.0 , 0.0 , 0.1 , 1.0);
-        var new_at = mult( A_pan_tilt, z_direction);
-        new_at= vec3( new_at[0], new_at[1], new_at[2]);
-        return new_at;
+        var A_pan_tilt = math.matrix( [
+            [ c_pan , s_pan*s_tilt, s_pan*c_tilt, this.eye[0] ],
+            [ 0.0, c_tilt, -s_tilt , this.eye[1] ],
+            [ -s_pan, c_pan*s_tilt , c_pan*c_tilt , this.eye[2] ],
+            [ 0.0 , 0.0 , 0.0 , 1.0 ]
+        ])
+        var z_direction = [
+            [ 0.0 ],
+            [ 0.0 ],
+            [ 0.1 ],
+            [ 1.0 ]
+            ];
+        var new_at = math.multiply( A_pan_tilt, z_direction);
+        var new_at_vec= vec3(
+            new_at.subset( math.index(0 , 0)),
+            new_at.subset( math.index( 1, 0)),
+            new_at.subset( math.index( 2, 0))
+        );
+        return new_at_vec;
     }
     this.pan= function(x_vel){
         var inc_const= 0.3;
@@ -382,15 +392,25 @@ function Player(e){
         var pan_angle_rad= this.pan_angle * Math.PI / 180.0;
         var c_pan  = Math.cos(pan_angle_rad);
         var s_pan  = Math.sin(pan_angle_rad);
-        var A_pan= mat4(
-            c_pan , 0.0 , -s_pan, 0.0,
-            0.0 , 1.0 , 0.0 , 0.0,
-            s_pan , 0.0 , c_pan , 0.0,
-            this.eye[0] , this.eye[1]  ,this.eye[2] , 1.0 );
-        var displacement = vec4( oriz_offset , 0.0 , sagitt_offset , 1.0);
-        var new_eye = mult( A_pan, displacement);
-        new_eye = vec3( new_eye[0], new_eye[1], new_eye[2]);
-        this.eye= new_eye;
+        var A_pan= math.matrix( [
+            [ c_pan, 0.0 , s_pan , this.eye[0] ],
+            [ 0.0, 1.0 , 0.0 , this.eye[1] ],
+            [ -s_pan , 0.0 , c_pan , this.eye[2] ],
+            [ 0.0 , 0.0 , 0.0 , 1.0 ]
+        ]);
+        var displacement = [
+            [ oriz_offset ],
+            [ 0.0 ],
+            [ sagitt_offset ],
+            [1.0]
+        ];
+        var new_eye = math.multiply( A_pan, displacement);
+        var new_eye_vec = vec3(
+            new_eye.subset( math.index(0 ,0)),
+            new_eye.subset( math.index(1 ,0)),
+            new_eye.subset( math.index(2 ,0))
+        );
+        this.eye= new_eye_vec;
        }
     }
 
@@ -593,6 +613,9 @@ var render = function() {
     player.step();
     var at = player.get_at_in_world();
 // get_at_in_world returns 0 0 1 always  --> check if the model is wrong
+// problem with matrizx operations ( in particular when i try to mult( matrix, column_vector)  
+// //--> MV library is not suited to do this kind of operations,
+// this functions can be used between squared matrices of the same  dimension
     modelView = lookAt(player.eye, at , up);
     projection = perspective(fovy, aspect, near, far);
 
