@@ -3,7 +3,7 @@
 var canvas;
 var gl;
 
-var numVertices  = 42;
+var numVertices  = 48;
 var program;
 
 
@@ -24,44 +24,44 @@ var normalsArray= [];
 //                 vec4( 0.5, -0.5, -0.5, 1.0 )
 //                 ];
 
-// var vertices = [
-//                vec4( -0.1, 0.1,  0.1, 1.0 ),
-//                vec4( -0.1,  0.3,  0.1, 1.0 ),
-//                vec4( 0.1,  0.3,  0.1, 1.0 ),
-//                vec4( 0.1, 0.1,  0.1, 1.0 ),
-//                vec4( -0.1, 0.1, -0.1, 1.0 ),
-//                vec4( -0.1, 0.3, -0.1, 1.0 ),
-//                vec4( 0.1,  0.3, -0.1, 1.0 ),
-//                vec4( 0.1, 0.1, -0.1, 1.0 )
-//                ];
-
-
 var vertices = [
-                vec4( -0.1, 0.0,  0.1, 1.0 ),
-                vec4( -0.1,  0.2,  0.1, 1.0 ),
-                vec4( 0.1,  0.2,  0.1, 1.0 ),
-                vec4( 0.1, 0.0,  0.1, 1.0 ),
-                vec4( -0.1, 0.0, -0.1, 1.0 ),
-                vec4( -0.1, 0.2, -0.1, 1.0 ),
-                vec4( 0.1,  0.2, -0.1, 1.0 ),
-                vec4( 0.1, 0.0, -0.1, 1.0 )
-                ];
+               vec4( -0.1, 0.1,  0.1, 1.0 ),
+               vec4( -0.1,  0.3,  0.1, 1.0 ),
+               vec4( 0.1,  0.3,  0.1, 1.0 ),
+               vec4( 0.1, 0.1,  0.1, 1.0 ),
+               vec4( -0.1, 0.1, -0.1, 1.0 ),
+               vec4( -0.1, 0.3, -0.1, 1.0 ),
+               vec4( 0.1,  0.3, -0.1, 1.0 ),
+               vec4( 0.1, 0.1, -0.1, 1.0 )
+               ];
 
 
+// var vertices = [
+//                 vec4( -0.1, 0.0,  0.1, 1.0 ),
+//                 vec4( -0.1,  0.2,  0.1, 1.0 ),
+//                 vec4( 0.1,  0.2,  0.1, 1.0 ),
+//                 vec4( 0.1, 0.0,  0.1, 1.0 ),
+//                 vec4( -0.1, 0.0, -0.1, 1.0 ),
+//                 vec4( -0.1, 0.2, -0.1, 1.0 ),
+//                 vec4( 0.1,  0.2, -0.1, 1.0 ),
+//                 vec4( 0.1, 0.0, -0.1, 1.0 )
+//                 ];
 
-//var floor_vertices = [
-//                vec4( 1.0, 0.0,  1.0, 1.0 ),
-//                vec4( 1.0, 0.0,  -1.0, 1.0 ),
-//                vec4( -1.0,  0.0,  -1.0, 1.0 ),
-//                vec4( -1.0, 0.0,  1.0 , 1.0 ),
-//]
+
 
 var floor_vertices = [
-                vec4( 1.0, -1.0,  0.0, 1.0 ),
-                vec4( 1.0, 1.0,  0.0, 1.0 ),
-                vec4( -1.0,  1.0,  0.0, 1.0 ),
-                vec4( -1.0, -1.0,  0.0 , 1.0 ),
+                vec4( 1.0, -1.0,  1.0, 1.0 ),
+                vec4( 1.0, -1.0,  -1.0, 1.0 ),
+                vec4( -1.0,  -1.0,  -1.0, 1.0 ),
+                vec4( -1.0, -1.0,  1.0 , 1.0 ),
 ];
+
+//var floor_vertices = [
+//                vec4( 1.0, -1.0,  0.0, 1.0 ),
+//                vec4( 1.0, 1.0,  0.0, 1.0 ),
+//                vec4( -1.0,  1.0,  0.0, 1.0 ),
+//                vec4( -1.0, -1.0,  0.0 , 1.0 ),
+//];
 
 var patch_vertices = [
                 vec4( 0.3, 0.2, 0.6, 1.0),
@@ -89,10 +89,10 @@ var cyan=  vec4( 0.0, 1.0, 1.0, 1.0 );
 
 var projection , modelView;
 var near = 0.1;
-var far = 2.0;
+var far = 3.0;
 var  fovy = 45.0;  // Field-of-view in Y direction angle (in degrees)
 var  aspect; 
-var initial_eye = vec3(0.0, 0.3, -1.0);
+var initial_eye = vec3(0.0, -0.7, -1.0);
 const up = vec3(0.0, 1.0, 0.0);
 var player;
 
@@ -242,7 +242,28 @@ function drawFloor(){
     colorsArray.push(gold);
     normalsArray.push(normal);
 }
+function drawTriangle(vertices_triang){
+    //normal computation
+    var t1 = subtract(vertices_triang[1], vertices_triang[0]);
+    var t2 = subtract(vertices_triang[2], vertices_triang[1]);
+    var normal =  cross(t1, t2); 
+    normal = normalize(vec3(normal)); 
 
+    pointsArray.push(vertices_triang[0]);
+    colorsArray.push(redd);
+    normalsArray.push(normal);
+    
+    
+    
+    pointsArray.push(vertices_triang[1]);
+    colorsArray.push(redd);
+    normalsArray.push(normal);
+    
+    
+    pointsArray.push(vertices_triang[2]);
+    colorsArray.push(redd);
+    normalsArray.push(normal);
+}
 
 function drawPatch(){
 
@@ -285,12 +306,12 @@ function drawPatch(){
 
 function colorCube()
 {
-   	quad_colored( 1, 0, 3, 2 ,3);//green
-   	quad_colored( 2, 3, 7, 6, 1 );//red
-   	quad_colored( 3, 0, 4, 7, 2 );//yellow
-   	quad_colored( 6, 5, 1, 2, 0 );//black
-   	quad_colored( 4, 5, 6, 7, 4 );//blue
-   	quad_colored( 5, 4, 0, 1, 5 );//magenta
+   	quad( 1, 0, 3, 2 );//green
+   	quad( 2, 3, 7, 6 );//red
+   	quad( 3, 0, 4, 7 );//yellow
+   	quad( 6, 5, 1, 2 );//black
+   	quad( 4, 5, 6, 7 );//blue
+   	quad( 5, 4, 0, 1 );//magenta
 }
 
 function moveCallback(e){
@@ -302,8 +323,8 @@ function moveCallback(e){
             e.movementY ||
             e.mozMovementY ||
             0;
-    console.log('mov_X'+ movementX);
-    console.log('mov_Y'+ movementY);
+    // console.log('mov_X'+ movementX);
+    // console.log('mov_Y'+ movementY);
     player.roll(movementY);
     player.pan(movementX);
 }
@@ -490,6 +511,9 @@ window.onload = function init() {
     drawFloor();
     drawPatch();
     colorCube();
+
+    // drawTriangle( [ vertices[6], vertices[5], vertices[0] ] );
+
     player = new Player(initial_eye);
 
 
@@ -559,43 +583,45 @@ window.onload = function init() {
     gl.uniform1f(gl.getUniformLocation(program, "shininess"),
                  materialShininess);
     
-      document.getElementById("zFarSlider").onchange = function(event) {
-        far = event.target.value;
-    };
-    document.getElementById("zNearSlider").onchange = function(event) {
-        near = event.target.value;
-    };
-    document.getElementById("xcoordSlider").onchange = function(event) {
-       eye[0] = parseFloat(event.target.value);
-       console.log(eye);
-    };
-    document.getElementById("ycoordSlider").onchange = function(event) {
-        eye[1] = parseFloat(event.target.value);
-        console.log(eye);
-    };
-    document.getElementById("zcoordSlider").onchange = function(event) {
-        eye[2] = parseFloat(event.target.value);
-        console.log(eye);
-    };
-    document.getElementById("aspectSlider").onchange = function(event) {
-        aspect = event.target.value;
-    };
-    document.getElementById("fovSlider").onchange = function(event) {
-        fovy = event.target.value;
-    };
 
-    document.getElementById("x_at_coordSlider").onchange = function(event) {
-       at[0] = parseFloat(event.target.value);
-       console.log(at);
-    };
-    document.getElementById("y_at_coordSlider").onchange = function(event) {
-        at[1] = parseFloat(event.target.value);
-        console.log(at);
-    };
-    document.getElementById("z_at_coordSlider").onchange = function(event) {
-        at[2] = parseFloat(event.target.value);
-        console.log(at);
-    };
+
+    // document.getElementById("zFarSlider").onchange = function(event) {
+    //     far = event.target.value;
+    // };
+    // document.getElementById("zNearSlider").onchange = function(event) {
+    //     near = event.target.value;
+    // };
+    // document.getElementById("xcoordSlider").onchange = function(event) {
+    //    eye[0] = parseFloat(event.target.value);
+    //    console.log(eye);
+    // };
+    // document.getElementById("ycoordSlider").onchange = function(event) {
+    //     eye[1] = parseFloat(event.target.value);
+    //     console.log(eye);
+    // };
+    // document.getElementById("zcoordSlider").onchange = function(event) {
+    //     eye[2] = parseFloat(event.target.value);
+    //     console.log(eye);
+    // };
+    // document.getElementById("aspectSlider").onchange = function(event) {
+    //     aspect = event.target.value;
+    // };
+    // document.getElementById("fovSlider").onchange = function(event) {
+    //     fovy = event.target.value;
+    // };
+
+    // document.getElementById("x_at_coordSlider").onchange = function(event) {
+    //    at[0] = parseFloat(event.target.value);
+    //    console.log(at);
+    // };
+    // document.getElementById("y_at_coordSlider").onchange = function(event) {
+    //     at[1] = parseFloat(event.target.value);
+    //     console.log(at);
+    // };
+    // document.getElementById("z_at_coordSlider").onchange = function(event) {
+    //     at[2] = parseFloat(event.target.value);
+    //     console.log(at);
+    // };
     
 
     document.addEventListener('pointerlockchange',changePointerLock, false);
@@ -612,12 +638,12 @@ var render = function() {
     
     player.step();
     var at = player.get_at_in_world();
-// get_at_in_world returns 0 0 1 always  --> check if the model is wrong
-// problem with matrizx operations ( in particular when i try to mult( matrix, column_vector)  
-// //--> MV library is not suited to do this kind of operations,
-// this functions can be used between squared matrices of the same  dimension
     modelView = lookAt(player.eye, at , up);
     projection = perspective(fovy, aspect, near, far);
+
+    //check on the distance eye- at checked !!
+    // var dist = Math.sqrt(Math.pow(at[0]-player.eye[0],2) + Math.pow(at[1]-player.eye[1], 2) + Math.pow(at[2]- player.eye[2], 2));
+    // console.log("distance :\n"+dist+"\n");
 
     spotlight_lightPosition= vec4( player.eye[0],player.eye[1],player.eye[2], 1);
     spotlight_coneDirection=normalize( vec3( at[0]-player.eye[0], at[1]-player.eye[1], at[2]- player.eye[2]));
