@@ -194,19 +194,25 @@ z_at_Coord -1.0<input id="z_at_coordSlider" type="range"
         uniform float linear_attenuation;
         uniform float quadratic_attenuation;
         
-        uniform mat4 projectionMatrix;
-        uniform mat4 modelViewMatrix;
+        uniform mat4 projectionMatrix;        
+        uniform mat4 viewMatrix;
+        uniform mat4 modelMatrix;
+        uniform mat3 normalMatrix;
         
         
         void main()
         {
             //pos is the vector from the eye towards the vertex (counter-intuitive)
             //vec3 pos = -(modelViewMatrix * vPosition).xyz;    
-            vec4 NN = vec4(vNormal,0);
-            N_for_frag = normalize((modelViewMatrix * NN).xyz); 
-            pos_for_frag= vec3(modelViewMatrix * vPosition);
+            // vec4 NN = vec4(vNormal,0);
+            // N_for_frag = normalize((modelViewMatrix * NN).xyz);
+
+            N_for_frag = normalize( normalMatrix * vNormal );
+            pos_for_frag= vec3(  (modelMatrix * vPosition).xyz );
             fColor= vColor;
-            gl_Position = projectionMatrix * modelViewMatrix * vPosition;
+
+            gl_Position = projectionMatrix * viewMatrix * modelMatrix * vPosition;
+
             //gl_Position.z = -gl_Position.z;  greveeee
         }
     </script>
@@ -243,7 +249,9 @@ z_at_Coord -1.0<input id="z_at_coordSlider" type="range"
         void
         main()
         {
-                
+        
+            vec3 N = normalize( N_for_frag);
+
             vec3 E_for_frag =  normalize(-pos_for_frag);
                 
             vec3 spotlightLight = spotlightLightPosition.xyz;
@@ -273,11 +281,11 @@ z_at_Coord -1.0<input id="z_at_coordSlider" type="range"
             vec3 H_spotlight = normalize(L_spotlight_for_frag + E_for_frag);
                 
             vec4 spotlight_ambient = spotlightAmbientProduct;
-            float Kd3 = max(dot(L_spotlight_for_frag, N_for_frag), 0.0);
+            float Kd3 = max(dot(L_spotlight_for_frag, N), 0.0);
             vec4  spotlight_diffuse = Kd3 * spotlightDiffuseProduct;
-            float Ks3 = pow(max(dot(N_for_frag, H_spotlight), 0.0), shininess);
+            float Ks3 = pow(max(dot(N, H_spotlight), 0.0), shininess);
             vec4  spotlight_specular = Ks3 * spotlightSpecularProduct;
-            if (dot(L_spotlight_for_frag, N_for_frag) < 0.0) {
+            if (dot(L_spotlight_for_frag, N) < 0.0) {
                 spotlight_specular = vec4(0.0, 0.0, 0.0, 1.0);
             }
                 

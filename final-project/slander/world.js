@@ -50,10 +50,10 @@ var vertices = [
 
 
 var floor_vertices = [
-                vec4( 1.0, -1.0,  1.0, 1.0 ),
-                vec4( 1.0, -1.0,  -1.0, 1.0 ),
-                vec4( -1.0,  -1.0,  -1.0, 1.0 ),
-                vec4( -1.0, -1.0,  1.0 , 1.0 ),
+                vec4( 1.0, 0.0,  1.0, 1.0 ),
+                vec4( 1.0, 0.0,  -1.0, 1.0 ),
+                vec4( -1.0,  0.0,  -1.0, 1.0 ),
+                vec4( -1.0, 0.0,  1.0 , 1.0 ),
 ];
 
 //var floor_vertices = [
@@ -87,12 +87,12 @@ var redd= vec4( 1.0, 0.0, 0.0, 1.0 );
 var cyan=  vec4( 0.0, 1.0, 1.0, 1.0 );
 
 
-var projection , modelView;
-var near = 0.1;
-var far = 3.0;
-var  fovy = 45.0;  // Field-of-view in Y direction angle (in degrees)
+var projectionMatrix , viewMatrix, modelMatrix, normalMatrix;
+var near = 0.02;
+var far = 5.0;
+var  fovy = 60.0;  // Field-of-view in Y direction angle (in degrees)
 var  aspect; 
-var initial_eye = vec3(0.0, -0.7, -1.0);
+var initial_eye = vec3(0.0, 0.2, -0.3);
 const up = vec3(0.0, 1.0, 0.0);
 var player;
 
@@ -638,8 +638,25 @@ var render = function() {
     
     player.step();
     var at = player.get_at_in_world();
-    modelView = lookAt(player.eye, at , up);
-    projection = perspective(fovy, aspect, near, far);
+    modelMatrix = mat4();
+    viewMatrix = lookAt(player.eye, at , up);
+    projectionMatrix = perspective(fovy, aspect, near, far);
+
+    var modelView = mult(viewMatrix, modelMatrix);
+    normalMatrix= mat3();
+    normalMatrix[0][0]= modelView[0][0];
+    normalMatrix[0][1]= modelView[0][1];
+    normalMatrix[0][2]= modelView[0][2];
+    normalMatrix[1][0]= modelView[1][0];
+    normalMatrix[1][1]= modelView[1][1];
+    normalMatrix[1][2]= modelView[1][2];
+    normalMatrix[2][0]= modelView[2][0];
+    normalMatrix[2][1]= modelView[2][1];
+    normalMatrix[2][2]= modelView[2][2];
+
+    normalMatrix= inverse(normalMatrix);
+    normalMatrix= transpose(normalMatrix);
+
 
     //check on the distance eye- at checked !!
     // var dist = Math.sqrt(Math.pow(at[0]-player.eye[0],2) + Math.pow(at[1]-player.eye[1], 2) + Math.pow(at[2]- player.eye[2], 2));
@@ -648,6 +665,9 @@ var render = function() {
     spotlight_lightPosition= vec4( player.eye[0],player.eye[1],player.eye[2], 1);
     spotlight_coneDirection=normalize( vec3( at[0]-player.eye[0], at[1]-player.eye[1], at[2]- player.eye[2]));
     
+    // spotlight_lightPosition= vec4( 0.5, 0.5, 0.5, 1.0);
+    // spotlight_coneDirection= vec3(-0.3 , -0.3 , -0.3 );
+
     gl.uniform4fv(gl.getUniformLocation(program, "spotlightLightPosition"),
                   flatten(spotlight_lightPosition));
     
@@ -656,10 +676,14 @@ var render = function() {
                   flatten(spotlight_coneDirection));
     
     gl.uniformMatrix4fv( gl.getUniformLocation(program,
-                                               "modelViewMatrix"), false, flatten(modelView) );
+                                               "modelMatrix"), false, flatten(modelMatrix) );
     gl.uniformMatrix4fv( gl.getUniformLocation(program,
-                                               "projectionMatrix"), false, flatten(projection) );
-    
+                                               "viewMatrix"), false, flatten(viewMatrix) );
+    gl.uniformMatrix4fv( gl.getUniformLocation(program,
+                                               "projectionMatrix"), false, flatten(projectionMatrix) );    
+    gl.uniformMatrix3fv( gl.getUniformLocation(program,
+                                               "normalMatrix"), false, flatten(normalMatrix) );
+   
     gl.drawArrays( gl.TRIANGLES, 0, numVertices );
     requestAnimFrame(render);
 
