@@ -264,30 +264,32 @@ z_at_Coord -1.0<input id="z_at_coordSlider" type="range"
             vec3 s= -L_spotlight_for_frag;
                 //check if the cone direction and the direction towards the surface point are concordant
                 //check if the overall direction is concorde, otherwise the light cone will be pointed in the other direction w.t.r. the surface.
-            if( dot(s,C) <= 0.0){
-                spotlight_intensity_multiplier = 0.0;
-            }
-            else{
+            // if( dot(s,C) <= 0.0){
+            //     spotlight_intensity_multiplier = 0.0;
+            // }
+            // else{
                 float phi_angle= acos(dot(s,C));
                 // check if the surface point is outside the cone of projected light
-                if(degrees(phi_angle) > spotlight_thetaCone){
-                    spotlight_intensity_multiplier = 0.0;
-                }
-                else{
+                // if(degrees(phi_angle) > spotlight_thetaCone){
+                //     spotlight_intensity_multiplier = 0.0;
+                // }
+                // else{
                     spotlight_intensity_multiplier= pow(cos(phi_angle), spotlight_cutOff);
-                }
-            }
+                // }
+            // }
                 
             vec3 H_spotlight = normalize(L_spotlight_for_frag + E_for_frag);
                 
             vec4 spotlight_ambient = spotlightAmbientProduct;
-            float Kd3 = max(dot(L_spotlight_for_frag, N), 0.0);
+            float Kd3_l = max(dot(L_spotlight_for_frag, N),0.0);// THERE
+            float Kd3_r = max(dot(L_spotlight_for_frag, -N),0.0);// THERE
+            float Kd3 = Kd3_l + Kd3_r;
             vec4  spotlight_diffuse = Kd3 * spotlightDiffuseProduct;
             float Ks3 = pow(max(dot(N, H_spotlight), 0.0), shininess);
             vec4  spotlight_specular = Ks3 * spotlightSpecularProduct;
-            if (dot(L_spotlight_for_frag, N) < 0.0) {
-                spotlight_specular = vec4(0.0, 0.0, 0.0, 1.0);
-            }
+            // if (dot(L_spotlight_for_frag, N) < 0.0) {
+            //     spotlight_specular = vec4(0.0, 0.0, 0.0, 1.0);
+            // }
                 
                 
             vec3 dist_spotlight=(spotlightLight - pos_for_frag);

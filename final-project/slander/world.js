@@ -102,7 +102,7 @@ var spotlight_lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
 var spotlight_lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
 
 var spotlight_coneDirection;
-var spotlight_thetaCone = 5.0;
+var spotlight_thetaCone = 15.0;
 var spotlight_cutOff= 78.0;
 
 
