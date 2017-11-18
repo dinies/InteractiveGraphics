@@ -7,84 +7,10 @@ var numVertices  = 48;
 var program;
 
 
-var pointsArray = [];
-var colorsArray = [];
-
-var normalsArray= [];
-
-
-// var vertices = [
-//                 vec4( -0.5, -0.5,  0.5, 1.0 ),
-//                 vec4( -0.5,  0.5,  0.5, 1.0 ),
-//                 vec4( 0.5,  0.5,  0.5, 1.0 ),
-//                 vec4( 0.5, -0.5,  0.5, 1.0 ),
-//                 vec4( -0.5, -0.5, -0.5, 1.0 ),
-//                 vec4( -0.5,  0.5, -0.5, 1.0 ),
-//                 vec4( 0.5,  0.5, -0.5, 1.0 ),
-//                 vec4( 0.5, -0.5, -0.5, 1.0 )
-//                 ];
-
-var vertices = [
-               vec4( -0.1, 0.1,  0.1, 1.0 ),
-               vec4( -0.1,  0.3,  0.1, 1.0 ),
-               vec4( 0.1,  0.3,  0.1, 1.0 ),
-               vec4( 0.1, 0.1,  0.1, 1.0 ),
-               vec4( -0.1, 0.1, -0.1, 1.0 ),
-               vec4( -0.1, 0.3, -0.1, 1.0 ),
-               vec4( 0.1,  0.3, -0.1, 1.0 ),
-               vec4( 0.1, 0.1, -0.1, 1.0 )
-               ];
-
-
-// var vertices = [
-//                 vec4( -0.1, 0.0,  0.1, 1.0 ),
-//                 vec4( -0.1,  0.2,  0.1, 1.0 ),
-//                 vec4( 0.1,  0.2,  0.1, 1.0 ),
-//                 vec4( 0.1, 0.0,  0.1, 1.0 ),
-//                 vec4( -0.1, 0.0, -0.1, 1.0 ),
-//                 vec4( -0.1, 0.2, -0.1, 1.0 ),
-//                 vec4( 0.1,  0.2, -0.1, 1.0 ),
-//                 vec4( 0.1, 0.0, -0.1, 1.0 )
-//                 ];
+var entities= {}; 
 
 
 
-var floor_vertices = [
-                vec4( 1.0, 0.0,  1.0, 1.0 ),
-                vec4( 1.0, 0.0,  -1.0, 1.0 ),
-                vec4( -1.0,  0.0,  -1.0, 1.0 ),
-                vec4( -1.0, 0.0,  1.0 , 1.0 ),
-];
-
-//var floor_vertices = [
-//                vec4( 1.0, -1.0,  0.0, 1.0 ),
-//                vec4( 1.0, 1.0,  0.0, 1.0 ),
-//                vec4( -1.0,  1.0,  0.0, 1.0 ),
-//                vec4( -1.0, -1.0,  0.0 , 1.0 ),
-//];
-
-var patch_vertices = [
-                vec4( 0.3, 0.2, 0.6, 1.0),
-                vec4( 0.3, 0.4, 0.6, 1.0),
-                vec4( 0.6, 0.4, 0.3, 1.0),
-                vec4( 0.6, 0.2, 0.3, 1.0)
-];
-
-var vertexColors = [
-                    vec4( 0.0, 0.0, 0.0, 1.0 ),  // black
-                    vec4( 1.0, 0.0, 0.0, 1.0 ),  // red
-                    vec4( 1.0, 1.0, 0.0, 1.0 ),  // yellow
-                    vec4( 0.0, 1.0, 0.0, 1.0 ),  // green
-                    vec4( 0.0, 0.0, 1.0, 1.0 ),  // blue
-                    vec4( 1.0, 0.0, 1.0, 1.0 ),  // magenta
-                    vec4( 0.0, 1.0, 1.0, 1.0 ),  // white
-                    vec4( 0.0, 1.0, 1.0, 1.0 )   // cyan
-                    ];
-var gold= vec4( 1.0, 0.84, 0.0 , 1.0);
-var yell= vec4( 1.0, 1.0, 0.0, 1.0 ); 
-var blue= vec4( 0.0, 0.0, 1.0, 1.0 );
-var redd= vec4( 1.0, 0.0, 0.0, 1.0 );
-var cyan=  vec4( 0.0, 1.0, 1.0, 1.0 );
 
 
 var projectionMatrix , viewMatrix, modelMatrix, normalMatrix;
@@ -111,208 +37,12 @@ var linear_attenuation= 0.2;
 var quadratic_attenuation= 0.3;
 
 
-var materialAmbient = vec4( 1.0, 1.0, 1.0, 1.0 );
-var materialDiffuse = vec4( 1.0, 1.0, 1.0, 1.0);
-var materialSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
+var materialAmbient = vec4( 0.6, 0.6, 0.6, 1.0 );
+var materialDiffuse = vec4( 0.4, 0.4, 0.4, 1.0);
+var materialSpecular = vec4( 0.9, 0.9, 0.9, 1.0 );
 var materialShininess = 100.0;
 
-function quad(a, b, c, d) {
-    
-    var t1 = subtract(vertices[b], vertices[a]);
-    var t2 = subtract(vertices[c], vertices[b]);
-    var normal = cross(t1, t2);
-    normal = vec3(normal);
-    normal = normalize(normal);
-    
-    
-    
-    pointsArray.push(vertices[a]);
-    colorsArray.push(vertexColors[a]);
-    normalsArray.push(normal);
-    
-    
-    
-    pointsArray.push(vertices[b]);
-    colorsArray.push(vertexColors[a]);
-    normalsArray.push(normal);
-    
-    
-    pointsArray.push(vertices[c]);
-    colorsArray.push(vertexColors[a]);
-    normalsArray.push(normal);
-    
-    
-    pointsArray.push(vertices[a]);
-    colorsArray.push(vertexColors[a]);
-    normalsArray.push(normal);
-    
-    
-    pointsArray.push(vertices[c]);
-    colorsArray.push(vertexColors[a]);
-    normalsArray.push(normal);
-    
-    
-    pointsArray.push(vertices[d]);
-    colorsArray.push(vertexColors[a]);
-    normalsArray.push(normal);
-    
-}
 
-
-function quad_colored(a, b, c, d, color) {
-    
-    var t1 = subtract(vertices[b], vertices[a]);
-    var t2 = subtract(vertices[c], vertices[b]);
-    var normal = cross(t1, t2);
-    normal = vec3(normal);
-    normal = normalize(normal);
-    
-    
-    
-    pointsArray.push(vertices[a]);
-    colorsArray.push(vertexColors[color]);
-    normalsArray.push(normal);
-    
-    
-    
-    pointsArray.push(vertices[b]);
-    colorsArray.push(vertexColors[color]);
-    normalsArray.push(normal);
-    
-    
-    pointsArray.push(vertices[c]);
-    colorsArray.push(vertexColors[color]);
-    normalsArray.push(normal);
-    
-    
-    pointsArray.push(vertices[a]);
-    colorsArray.push(vertexColors[color]);
-    normalsArray.push(normal);
-    
-    
-    pointsArray.push(vertices[c]);
-    colorsArray.push(vertexColors[color]);
-    normalsArray.push(normal);
-    
-    
-    pointsArray.push(vertices[d]);
-    colorsArray.push(vertexColors[color]);
-    normalsArray.push(normal);
-    
-}
-
-
-
-// r,b,c,d are the edges , color_index means the color of the quad
-function drawFloor(){
-
-    //normal computation
-    var t1 = subtract(floor_vertices[1], floor_vertices[0]);
-    var t2 = subtract(floor_vertices[2], floor_vertices[1]);
-    var normal =  cross(t1, t2); 
-    normal = normalize(vec3(normal)); 
-
-    pointsArray.push(floor_vertices[0]);
-    colorsArray.push(gold);
-    normalsArray.push(normal);
-    
-    
-    
-    pointsArray.push(floor_vertices[1]);
-    colorsArray.push(gold);
-    normalsArray.push(normal);
-    
-    
-    pointsArray.push(floor_vertices[2]);
-    colorsArray.push(gold);
-    normalsArray.push(normal);
-    
-    
-    pointsArray.push(floor_vertices[0]);
-    colorsArray.push(gold);
-    normalsArray.push(normal);
-    
-    
-    pointsArray.push(floor_vertices[2]);
-    colorsArray.push(gold);
-    normalsArray.push(normal);
-    
-    
-    pointsArray.push(floor_vertices[3]);
-    colorsArray.push(gold);
-    normalsArray.push(normal);
-}
-function drawTriangle(vertices_triang){
-    //normal computation
-    var t1 = subtract(vertices_triang[1], vertices_triang[0]);
-    var t2 = subtract(vertices_triang[2], vertices_triang[1]);
-    var normal =  cross(t1, t2); 
-    normal = normalize(vec3(normal)); 
-
-    pointsArray.push(vertices_triang[0]);
-    colorsArray.push(redd);
-    normalsArray.push(normal);
-    
-    
-    
-    pointsArray.push(vertices_triang[1]);
-    colorsArray.push(redd);
-    normalsArray.push(normal);
-    
-    
-    pointsArray.push(vertices_triang[2]);
-    colorsArray.push(redd);
-    normalsArray.push(normal);
-}
-
-function drawPatch(){
-
-    //normal computation
-    var t1 = subtract(patch_vertices[1], patch_vertices[0]);
-    var t2 = subtract(patch_vertices[2], patch_vertices[1]);
-    var normal =  cross(t1, t2); 
-    normal = normalize(vec3(normal)); 
-
-    pointsArray.push(patch_vertices[0]);
-    colorsArray.push(redd);
-    normalsArray.push(normal);
-    
-    
-    
-    pointsArray.push(patch_vertices[1]);
-    colorsArray.push(cyan);
-    normalsArray.push(normal);
-    
-    
-    pointsArray.push(patch_vertices[2]);
-    colorsArray.push(yell);
-    normalsArray.push(normal);
-    
-    
-    pointsArray.push(patch_vertices[0]);
-    colorsArray.push(cyan);
-    normalsArray.push(normal);
-    
-    
-    pointsArray.push(patch_vertices[2]);
-    colorsArray.push(blue);
-    normalsArray.push(normal);
-    
-    
-    pointsArray.push(patch_vertices[3]);
-    colorsArray.push(gold);
-    normalsArray.push(normal);
-}
-
-function colorCube()
-{
-   	quad( 1, 0, 3, 2 );//green
-   	quad( 2, 3, 7, 6 );//red
-   	quad( 3, 0, 4, 7 );//yellow
-   	quad( 6, 5, 1, 2 );//black
-   	quad( 4, 5, 6, 7 );//blue
-   	quad( 5, 4, 0, 1 );//magenta
-}
 
 function moveCallback(e){
     var movementX=
@@ -346,6 +76,7 @@ function changePointerLock()
             player.rightKey= false;
        }
 }
+
 
 function Player(e){
     this.eye= e;
@@ -506,28 +237,30 @@ window.onload = function init() {
         }
     };
 
-
+    //list of object to render
+    entities = createScene();
    
-    drawFloor();
-    drawPatch();
-    colorCube();
+    // drawFloor();
+    // drawPatch();
+    // colorCube();
 
     // drawTriangle( [ vertices[6], vertices[5], vertices[0] ] );
 
+    // here i have to build all the tree objects in a list and each tree will have a buffer for vertices
     player = new Player(initial_eye);
 
-
-    var cBuffer = gl.createBuffer();
-    gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
-    gl.bufferData( gl.ARRAY_BUFFER, flatten(colorsArray), gl.STATIC_DRAW );
+//after
+    // var cBuffer = gl.createBuffer();
+    // gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
+    // gl.bufferData( gl.ARRAY_BUFFER, flatten(colorsArray), gl.STATIC_DRAW );
     
-    var vColor = gl.getAttribLocation( program, "vColor" );
-    gl.vertexAttribPointer( vColor, 4, gl.FLOAT, false, 0, 0 );
-    gl.enableVertexAttribArray( vColor );
+    // var vColor = gl.getAttribLocation( program, "vColor" );
+    // gl.vertexAttribPointer( vColor, 4, gl.FLOAT, false, 0, 0 );
+    // gl.enableVertexAttribArray( vColor );
     
     var vBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer);
-    gl.bufferData( gl.ARRAY_BUFFER, flatten(pointsArray), gl.STATIC_DRAW );
+    gl.bufferData( gl.ARRAY_BUFFER, flatten( entities.vertices_array), gl.STATIC_DRAW );
     
     var vPosition = gl.getAttribLocation( program, "vPosition" );
     gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
@@ -536,7 +269,7 @@ window.onload = function init() {
     
     var nBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer);
-    gl.bufferData( gl.ARRAY_BUFFER, flatten(normalsArray), gl.STATIC_DRAW );
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(entities.normals_array), gl.STATIC_DRAW );
     
     var vNormal = gl.getAttribLocation( program, "vNormal" );
     gl.vertexAttribPointer( vNormal, 3, gl.FLOAT, false, 0, 0 );
@@ -642,31 +375,31 @@ var render = function() {
     viewMatrix = lookAt(player.eye, at , up);
     projectionMatrix = perspective(fovy, aspect, near, far);
 
-    var modelView = mult(viewMatrix, modelMatrix);
-    normalMatrix= mat3();
-    normalMatrix[0][0]= modelView[0][0];
-    normalMatrix[0][1]= modelView[0][1];
-    normalMatrix[0][2]= modelView[0][2];
-    normalMatrix[1][0]= modelView[1][0];
-    normalMatrix[1][1]= modelView[1][1];
-    normalMatrix[1][2]= modelView[1][2];
-    normalMatrix[2][0]= modelView[2][0];
-    normalMatrix[2][1]= modelView[2][1];
-    normalMatrix[2][2]= modelView[2][2];
-
-    normalMatrix= inverse(normalMatrix);
-    normalMatrix= transpose(normalMatrix);
+    
 
 
     //check on the distance eye- at checked !!
     // var dist = Math.sqrt(Math.pow(at[0]-player.eye[0],2) + Math.pow(at[1]-player.eye[1], 2) + Math.pow(at[2]- player.eye[2], 2));
     // console.log("distance :\n"+dist+"\n");
 
-    spotlight_lightPosition= vec4( player.eye[0],player.eye[1],player.eye[2], 1);
-    spotlight_coneDirection=normalize( vec3( at[0]-player.eye[0], at[1]-player.eye[1], at[2]- player.eye[2]));
+    spotlight_lightPosition= vec4( 
+                                player.eye[0],
+                                player.eye[1],
+                                player.eye[2],
+                                1
+                                );
+
+    spotlight_coneDirection=normalize(  vec3( 
+                                            at[0]-player.eye[0],
+                                            at[1]-player.eye[1],
+                                            at[2]- player.eye[2]
+                                            ));
     
     // spotlight_lightPosition= vec4( 0.5, 0.5, 0.5, 1.0);
     // spotlight_coneDirection= vec3(-0.3 , -0.3 , -0.3 );
+
+
+
 
     gl.uniform4fv(gl.getUniformLocation(program, "spotlightLightPosition"),
                   flatten(spotlight_lightPosition));
@@ -676,15 +409,17 @@ var render = function() {
                   flatten(spotlight_coneDirection));
     
     gl.uniformMatrix4fv( gl.getUniformLocation(program,
-                                               "modelMatrix"), false, flatten(modelMatrix) );
-    gl.uniformMatrix4fv( gl.getUniformLocation(program,
                                                "viewMatrix"), false, flatten(viewMatrix) );
     gl.uniformMatrix4fv( gl.getUniformLocation(program,
                                                "projectionMatrix"), false, flatten(projectionMatrix) );    
-    gl.uniformMatrix3fv( gl.getUniformLocation(program,
-                                               "normalMatrix"), false, flatten(normalMatrix) );
+
+
    
-    gl.drawArrays( gl.TRIANGLES, 0, numVertices );
+    // gl.drawArrays( gl.TRIANGLES, 0, numVertices );
+
+
+    drawScene( entities , gl, viewMatrix);
+    
     requestAnimFrame(render);
 
 }
