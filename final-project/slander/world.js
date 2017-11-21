@@ -15,12 +15,13 @@ var entities= {};
 
 var projectionMatrix , viewMatrix, modelMatrix, normalMatrix;
 var near = 0.02;
-var far = 5.0;
-var  fovy = 60.0;  // Field-of-view in Y direction angle (in degrees)
+var far = 10.0;
+var  fovy = 70.0;  // Field-of-view in Y direction angle (in degrees)
 var  aspect; 
 var initial_eye = vec3(0.0, 0.2, -0.3);
 const up = vec3(0.0, 1.0, 0.0);
 var player;
+var scene;
 
 var spotlight_lightPosition;
 var spotlight_lightAmbient = vec4(1.0, 1.0, 1.0, 1.0 );
@@ -238,7 +239,9 @@ window.onload = function init() {
     };
 
     //list of object to render
-    entities = createScene();
+    player = new Player(initial_eye);
+    scene = new Scene();
+    scene.create();
    
     // drawFloor();
     // drawPatch();
@@ -247,7 +250,6 @@ window.onload = function init() {
     // drawTriangle( [ vertices[6], vertices[5], vertices[0] ] );
 
     // here i have to build all the tree objects in a list and each tree will have a buffer for vertices
-    player = new Player(initial_eye);
 
 //after
     // var cBuffer = gl.createBuffer();
@@ -260,7 +262,7 @@ window.onload = function init() {
     
     var vBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer);
-    gl.bufferData( gl.ARRAY_BUFFER, flatten( entities.vertices_array), gl.STATIC_DRAW );
+    gl.bufferData( gl.ARRAY_BUFFER, flatten( scene.pointsArray ), gl.STATIC_DRAW );
     
     var vPosition = gl.getAttribLocation( program, "vPosition" );
     gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
@@ -269,7 +271,7 @@ window.onload = function init() {
     
     var nBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer);
-    gl.bufferData( gl.ARRAY_BUFFER, flatten(entities.normals_array), gl.STATIC_DRAW );
+    gl.bufferData( gl.ARRAY_BUFFER, flatten(scene.normalsArray ), gl.STATIC_DRAW );
     
     var vNormal = gl.getAttribLocation( program, "vNormal" );
     gl.vertexAttribPointer( vNormal, 3, gl.FLOAT, false, 0, 0 );
@@ -418,8 +420,7 @@ var render = function() {
     // gl.drawArrays( gl.TRIANGLES, 0, numVertices );
 
 
-    drawScene( entities , gl, viewMatrix);
-    
+    scene.draw( gl, viewMatrix);
     requestAnimFrame(render);
 
 }

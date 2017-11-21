@@ -1,9 +1,13 @@
+var origin_model_matrix= mat4();
 
 
-var pointsArray = [];
-var normalsArray= [];
 
-var vertices = [
+function Scene(){
+	this.pointsArray = [];
+	this.normalsArray= [];
+	this.entities= {};
+
+	this.vertices = [
                 vec4( -0.5, -0.5,  0.5, 1.0 ),
                 vec4( -0.5,  0.5,  0.5, 1.0 ),
                 vec4( 0.5,  0.5,  0.5, 1.0 ),
@@ -13,6 +17,70 @@ var vertices = [
                 vec4( 0.5,  0.5, -0.5, 1.0 ),
                 vec4( 0.5, -0.5, -0.5, 1.0 )
                 ];
+
+	this.quadVertices= function(a, b, c, d) {
+    
+	   	var t1 = subtract( this.vertices[b], this.vertices[a]);
+   		var t2 = subtract( this.vertices[c], this.vertices[b]);
+   		var normal = normalize(vec3(cross(t1, t2)));
+    
+    	this.pointsArray.push( this.vertices[a]);
+    	this.pointsArray.push( this.vertices[b]);
+    	this.pointsArray.push( this.vertices[c]);
+    
+    
+	   	this.pointsArray.push( this.vertices[a]);
+	    this.pointsArray.push( this.vertices[c]);
+	    this.pointsArray.push( this.vertices[d]);
+	    
+		for (var i = 0; i < 6; i++) {
+	    	this.normalsArray.push(normal);
+		}
+
+	};
+	this.generateCube= function() {
+
+	   	this.quadVertices( 1, 0, 3, 2);
+	   	this.quadVertices( 2, 3, 7, 6);
+	   	this.quadVertices( 3, 0, 4, 7);
+	   	this.quadVertices( 6, 5, 1, 2);
+	   	this.quadVertices( 4, 5, 6, 7);
+	   	this.quadVertices( 5, 4, 0, 1);
+
+	};
+
+	this.create= function(){
+		//calculate normals   ----   fill buffer variables
+		// load normal and vertex normals only once (compatible with each entity)
+		this.generateCube();
+
+		var tree_list= [];
+		tree_list[0] = new Tree(4.0 , 4.0 , 2);
+		tree_list[0].build();
+		
+
+		this.entities= {
+			floor : new Floor(),
+			trees : tree_list,
+			slender : new Slender()
+		};
+	};
+	this.draw= function( gl,  view_matrix ){
+		
+		// 			for each e in entities
+		// load a color buffer for each entity
+		// use scale and translation data recovered from entities data struct
+		// compute model matrix
+		// then model view plus normal_matrix
+		// load gl matrix variables
+		// check if all buffers have been covered
+		// gl.drawArrays( ... )
+
+		this.entities.floor.draw( gl, view_matrix);
+		this.entities.trees[0].draw( gl, view_matrix);
+	}
+};
+
 
 var vertexColors = [
                     vec4( 0.0, 0.0, 0.0, 1.0 ),  // black
@@ -27,6 +95,7 @@ var vertexColors = [
                     ];
 
 
+
 function cubeColors( index ) {
 	
 	var colors_array= [];
@@ -35,66 +104,17 @@ function cubeColors( index ) {
 		colors_array.push(vertexColors[index]);
 	}
 	return colors_array;
-}
+};
 
 
-function quadVertices(a, b, c, d) {
-    
-    var t1 = subtract(vertices[b], vertices[a]);
-    var t2 = subtract(vertices[c], vertices[b]);
-    var normal = normalize(vec3(cross(t1, t2)));
-    
-    pointsArray.push(vertices[a]);
-    pointsArray.push(vertices[b]);
-    pointsArray.push(vertices[c]);
-    
-    
-    pointsArray.push(vertices[a]);
-    pointsArray.push(vertices[c]);
-    pointsArray.push(vertices[d]);
-    
-	for (var i = 0; i < 6; i++) {
-    	normalsArray.push(normal);
-	}
-
-}
 
 
-function generateCube() {
-
-   	quadVertices( 1, 0, 3, 2);
-   	quadVertices( 2, 3, 7, 6);
-   	quadVertices( 3, 0, 4, 7);
-   	quadVertices( 6, 5, 1, 2);
-   	quadVertices( 4, 5, 6, 7);
-   	quadVertices( 5, 4, 0, 1);
-
-}
-//SO3 coords ( x , y , z , roll , pitch, yaw)
-function Parallelepiped( SO3_coords, colors_array) {
-	this.coords= SO3_coords;
-	this.colors = colors_array;
-}
-
-function floor() {
-	var colors_array = cubeColors(5);
-	return new Parallelepiped( [0,0,0,0,0,0] , colors_array);
-
-}
-
-function createScene(){
-	//calculate normals   ----   fill buffer variables
-	// load normal and vertex normals only once (compatible with each entity)
-	generateCube();
-
-
-	var f= floor();
-
-	return {
-		vertices_array : pointsArray,
-		normals_array : normalsArray,
-		floor : f // suitable data_struct
-	};
+function scale4(a, b, c) {
+   var result = mat4();
+   result[0][0] = a;
+   result[1][1] = b;
+   result[2][2] = c;
+   return result;
 }
 
 
@@ -117,54 +137,93 @@ function  computeNormalMatrix( viewMatrix, modelMatrix){
 }
 
 
-function drawScene( entities, gl,  view_matrix ){
+
+
+
+function Parallelepiped( height, width, depth, transl, colors_array) {  //rewrite args
+	this.size= {
+		height : height,
+		width : width,
+		depth : depth
+	};
+	this.translation= transl;
+	this.colors = colors_array;
+	this.draw= function(gl, view_matrix){
+			var cBuffer = gl.createBuffer();
+	    gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
+	    gl.bufferData( gl.ARRAY_BUFFER, flatten( this.colors ), gl.STATIC_DRAW );
+	    
+	    var vColor = gl.getAttribLocation( program, "vColor" );
+	    gl.vertexAttribPointer( vColor, 4, gl.FLOAT, false, 0, 0 );
+	    gl.enableVertexAttribArray( vColor );
+
+	    var scale = scale4(this.size["width"], this.size["height"], this.size["depth"]);
+	    var instanceMatrix = mult(
+	    	translate( 
+	    		this.translation[0],
+	    		this.translation[1],
+	    		this.translation[2] 
+	    		),
+	    	scale
+	    	);
+
+	    model_matrix = mult(origin_model_matrix, instanceMatrix);
+
+	    var normal_matrix= computeNormalMatrix( view_matrix, model_matrix);
+
+
+	    gl.uniformMatrix4fv( gl.getUniformLocation(program,
+	                                               "modelMatrix"), false, flatten(model_matrix) );
+
+	    gl.uniformMatrix3fv( gl.getUniformLocation(program,
+	                                               "normalMatrix"), false, flatten(normal_matrix) );
+
+	    gl.drawArrays( gl.TRIANGLES, 0, 36);
 	
-	// 			for each e in entities
-	// load a color buffer for each entity
-	// use scale and translation data recovered from entities data struct
-	// compute model matrix
-	// then model view plus normal_matrix
-	// load gl matrix variables
-	// check if all buffers have been covered
-	// gl.drawArrays( ... )
-	var fig=  entities.floor;
+	}
+}
 
-
-    var cBuffer = gl.createBuffer();
-    gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
-    gl.bufferData( gl.ARRAY_BUFFER, flatten( fig.colors ), gl.STATIC_DRAW );
-    
-    var vColor = gl.getAttribLocation( program, "vColor" );
-    gl.vertexAttribPointer( vColor, 4, gl.FLOAT, false, 0, 0 );
-    gl.enableVertexAttribArray( vColor );
-
-    var model_matrix= mat4();
-
-    var normal_matrix= computeNormalMatrix( view_matrix, model_matrix);
-
-
-    gl.uniformMatrix4fv( gl.getUniformLocation(program,
-                                               "modelMatrix"), false, flatten(modelMatrix) );
-
-    gl.uniformMatrix3fv( gl.getUniformLocation(program,
-                                               "normalMatrix"), false, flatten(normalMatrix) );
-
-    gl.drawArrays( gl.TRIANGLES, 0, 36);
+function Slender( x , z) {
+	this.position= [ x, z];
+	this.build = 
+	var 
 
 }
 
 
 
-// function Tree(x,y){
-//     this.x= x;
-//     this.y= y;
-//     this.pieces= 0;
-//     this.struct= ...
-//     this.draw= function(){
-//     	...
 
-//     }
-//     this.build= function(size){
-//     	...
-//     }
-// }
+function Floor() {
+	var colors_array = cubeColors(5);
+	this.surface=  new Parallelepiped( 1.0,30.0,30.0, [ 0.0,-1.0,0.0], colors_array);
+	
+	this.draw= function(gl, view_matrix){
+		this.surface.draw(gl, view_matrix);
+    }
+}
+
+
+
+function Node(){
+	this.value= null;
+	this.left= null;
+	this.right= null;
+	this.parent= null;
+
+}
+
+
+function Tree(x,z, layers){
+    this.x= x;
+    this.z= z;
+    this.layers= layers;
+    this.root= new Node();
+
+    this.build= function(){
+    	this.root.value= new Parallelepiped( 5.0, 0.5, 0.5, [this.x, 2.0 , this.z ], cubeColors(2) );
+    }
+    this.draw= function(gl, view_matrix){
+    	this.root.value.draw(gl, view_matrix);
+
+    }
+}
