@@ -7,7 +7,7 @@ var numVertices  = 48;
 var program;
 
 
-var entities= {}; 
+var entities= {};
 
 
 
@@ -65,7 +65,7 @@ function moveCallback(e){
 function changePointerLock()
 {
     if (document.pointerLockElement === canvas||
-        document.mozPointerLockElement === canvas){ 
+        document.mozPointerLockElement === canvas){
             document.addEventListener("mousemove", moveCallback, false);
             player.lockedState= true;
        } else {
@@ -97,10 +97,10 @@ function Player(e){
         var s_tilt = Math.sin(tilt_angle_rad);
         var A_pan_tilt = math.matrix( [
             [ c_pan , s_pan*s_tilt, s_pan*c_tilt, this.eye[0] ],
-            [ 0.0, c_tilt, -s_tilt , this.eye[1] ],
-            [ -s_pan, c_pan*s_tilt , c_pan*c_tilt , this.eye[2] ],
-            [ 0.0 , 0.0 , 0.0 , 1.0 ]
-        ])
+            [ 0.0   , c_tilt      , -s_tilt     , this.eye[1] ],
+            [ -s_pan, c_pan*s_tilt, c_pan*c_tilt, this.eye[2] ],
+            [ 0.0   , 0.0         , 0.0         , 1.0         ]
+        ]);
         var z_direction = [
             [ 0.0 ],
             [ 0.0 ],
@@ -114,17 +114,17 @@ function Player(e){
             new_at.subset( math.index( 2, 0))
         );
         return new_at_vec;
-    }
+    };
     this.pan= function(x_vel){
         var inc_const= 0.3;
         this.pan_angle -= inc_const*x_vel;
-    }
+    };
     this.roll= function(y_vel){
         var inc_const= 0.3;
         if ( (y_vel > 0.0 && this.tilt_angle < 70.0) || ( y_vel <= 0.0 && this.tilt_angle > -70.0)){
            this.tilt_angle += inc_const*y_vel;
         }
-    }
+    };
     this.step= function(){
         if (this.lockedState){
         var coeff= 0.01;
@@ -146,16 +146,16 @@ function Player(e){
         var c_pan  = Math.cos(pan_angle_rad);
         var s_pan  = Math.sin(pan_angle_rad);
         var A_pan= math.matrix( [
-            [ c_pan, 0.0 , s_pan , this.eye[0] ],
-            [ 0.0, 1.0 , 0.0 , this.eye[1] ],
-            [ -s_pan , 0.0 , c_pan , this.eye[2] ],
-            [ 0.0 , 0.0 , 0.0 , 1.0 ]
+            [ c_pan , 0.0 , s_pan , this.eye[0] ],
+            [ 0.0   , 1.0 , 0.0   , this.eye[1] ],
+            [ -s_pan, 0.0 , c_pan , this.eye[2] ],
+            [ 0.0   , 0.0 , 0.0   , 1.0         ]
         ]);
         var displacement = [
-            [ oriz_offset ],
-            [ 0.0 ],
+            [ oriz_offset   ],
+            [ 0.0           ],
             [ sagitt_offset ],
-            [1.0]
+            [ 1.0           ]
         ];
         var new_eye = math.multiply( A_pan, displacement);
         var new_eye_vec = vec3(
@@ -165,7 +165,7 @@ function Player(e){
         );
         this.eye= new_eye_vec;
        }
-    }
+    };
 
    this.keyupHook = function(event) {
         if (this.lockedState) {
@@ -183,7 +183,7 @@ function Player(e){
          this.rightKey = false;
        }
      }
-    }
+   };
 
    this.keydownHook = function(event) {
           if (this.lockedState) {
@@ -201,32 +201,27 @@ function Player(e){
               this.rightKey = true;
             }
           }
-     }
+   };
 
 }
 
 window.onload = function init() {
-    
+
    	canvas = document.getElementById( "gl-canvas" );
-    
+
    	gl = WebGLUtils.setupWebGL( canvas );
    	if ( !gl ) { alert( "WebGL isn't available" ); }
-    
+
     gl.viewport( 0, 0, canvas.width, canvas.height );
-       
     aspect =  canvas.width/canvas.height;
 
    	gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
-    
    	gl.enable(gl.DEPTH_TEST);
-    
     //  Load shaders and initialize attribute buffers
-    
     program = initShaders( gl, "vertex-shader", "fragment-shader" );
     gl.useProgram( program );
-    
-    canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
 
+    canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
 
     canvas.onclick = function() {
         canvas.requestPointerLock();
@@ -234,45 +229,40 @@ window.onload = function init() {
             document.mozPointerLockElement === canvas) {
                 console.log('The pointer lock status is now locked');
         } else {
-            console.log('The pointer lock status is now unlocked');  
+            console.log('The pointer lock status is now unlocked');
         }
     };
-
     //list of object to render
     player = new Player(initial_eye);
     scene = new Scene();
     scene.create();
-   
     // drawFloor();
     // drawPatch();
     // colorCube();
 
     // drawTriangle( [ vertices[6], vertices[5], vertices[0] ] );
 
-    // here i have to build all the tree objects in a list and each tree will have a buffer for vertices
+    //here i have to build all the tree objects in a list and each tree will have a buffer for vertices
 
 //after
     // var cBuffer = gl.createBuffer();
     // gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
     // gl.bufferData( gl.ARRAY_BUFFER, flatten(colorsArray), gl.STATIC_DRAW );
-    
     // var vColor = gl.getAttribLocation( program, "vColor" );
     // gl.vertexAttribPointer( vColor, 4, gl.FLOAT, false, 0, 0 );
     // gl.enableVertexAttribArray( vColor );
-    
     var vBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer);
     gl.bufferData( gl.ARRAY_BUFFER, flatten( scene.pointsArray ), gl.STATIC_DRAW );
-    
+
     var vPosition = gl.getAttribLocation( program, "vPosition" );
     gl.vertexAttribPointer( vPosition, 4, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vPosition );
-    
-    
+
     var nBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, nBuffer);
     gl.bufferData( gl.ARRAY_BUFFER, flatten(scene.normalsArray ), gl.STATIC_DRAW );
-    
+
     var vNormal = gl.getAttribLocation( program, "vNormal" );
     gl.vertexAttribPointer( vNormal, 3, gl.FLOAT, false, 0, 0 );
     gl.enableVertexAttribArray( vNormal );
@@ -280,46 +270,27 @@ window.onload = function init() {
     var spotlight_ambientProduct = mult(spotlight_lightAmbient, materialAmbient);
     var spotlight_specularProduct = mult(spotlight_lightSpecular, materialSpecular);
     var spotlight_diffuseProduct = mult(spotlight_lightDiffuse, materialDiffuse);
-    
-    
-    
-    
-    //spotlight 
+
+    //spotlight
     gl.uniform4fv(gl.getUniformLocation(program, "spotlightAmbientProduct"),
                   flatten(spotlight_ambientProduct));
-    
     gl.uniform4fv(gl.getUniformLocation(program, "spotlightSpecularProduct"),
                   flatten(spotlight_specularProduct));
-    
     gl.uniform4fv(gl.getUniformLocation(program, "spotlightDiffuseProduct"),
                   flatten(spotlight_diffuseProduct));
-    
-    
-    
     gl.uniform1f(gl.getUniformLocation(program, "spotlight_thetaCone"),
                  spotlight_thetaCone);
-    
     gl.uniform1f(gl.getUniformLocation(program, "spotlight_cutOff"),
                  spotlight_cutOff);
-    
-    
     //attenuation coefficients
-    
     gl.uniform1f(gl.getUniformLocation(program, "constant_attenuation"),
                  constant_attenuation);
-    
     gl.uniform1f(gl.getUniformLocation(program, "linear_attenuation"),
                  linear_attenuation);
-    
     gl.uniform1f(gl.getUniformLocation(program, "quadratic_attenuation"),
                  quadratic_attenuation);
-    
-    
     gl.uniform1f(gl.getUniformLocation(program, "shininess"),
                  materialShininess);
-    
-
-
     // document.getElementById("zFarSlider").onchange = function(event) {
     //     far = event.target.value;
     // };
@@ -357,11 +328,9 @@ window.onload = function init() {
     //     at[2] = parseFloat(event.target.value);
     //     console.log(at);
     // };
-    
 
     document.addEventListener('pointerlockchange',changePointerLock, false);
     document.addEventListener('mozpointerlockchange',changePointerLock , false);
-    
     document.onkeydown = function(e) { player.keydownHook(e); };
     document.onkeyup = function(e) { player.keyupHook(e); };
 
@@ -370,57 +339,45 @@ window.onload = function init() {
 
 var render = function() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    
     player.step();
     var at = player.get_at_in_world();
     modelMatrix = mat4();
     viewMatrix = lookAt(player.eye, at , up);
     projectionMatrix = perspective(fovy, aspect, near, far);
 
-    
-
-
     //check on the distance eye- at checked !!
     // var dist = Math.sqrt(Math.pow(at[0]-player.eye[0],2) + Math.pow(at[1]-player.eye[1], 2) + Math.pow(at[2]- player.eye[2], 2));
     // console.log("distance :\n"+dist+"\n");
 
-    spotlight_lightPosition= vec4( 
+    spotlight_lightPosition= vec4(
                                 player.eye[0],
                                 player.eye[1],
                                 player.eye[2],
                                 1
                                 );
 
-    spotlight_coneDirection=normalize(  vec3( 
+    spotlight_coneDirection=normalize(  vec3(
                                             at[0]-player.eye[0],
                                             at[1]-player.eye[1],
                                             at[2]- player.eye[2]
                                             ));
-    
     // spotlight_lightPosition= vec4( 0.5, 0.5, 0.5, 1.0);
     // spotlight_coneDirection= vec3(-0.3 , -0.3 , -0.3 );
 
-
-
-
     gl.uniform4fv(gl.getUniformLocation(program, "spotlightLightPosition"),
                   flatten(spotlight_lightPosition));
-    
-    
     gl.uniform3fv(gl.getUniformLocation(program, "spotlight_coneDirection"),
                   flatten(spotlight_coneDirection));
-    
     gl.uniformMatrix4fv( gl.getUniformLocation(program,
                                                "viewMatrix"), false, flatten(viewMatrix) );
     gl.uniformMatrix4fv( gl.getUniformLocation(program,
-                                               "projectionMatrix"), false, flatten(projectionMatrix) );    
+                                               "projectionMatrix"), false, flatten(projectionMatrix) );
 
 
-   
     // gl.drawArrays( gl.TRIANGLES, 0, numVertices );
 
 
-    scene.draw( gl, viewMatrix);
+    scene.draw( gl, viewMatrix, player.eye);
     requestAnimFrame(render);
 
-}
+};
