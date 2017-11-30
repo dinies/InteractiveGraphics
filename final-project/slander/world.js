@@ -15,10 +15,10 @@ var entities= {};
 
 var projectionMatrix , viewMatrix, modelMatrix, normalMatrix;
 var near = 0.02;
-var far = 10.0;
+var far = 52.0;
 var  fovy = 70.0;  // Field-of-view in Y direction angle (in degrees)
-var  aspect; 
-var initial_eye = vec3(0.0, 0.2, -0.3);
+var  aspect;
+var initial_eye = vec3(0.0, 1.0, -0.3);
 const up = vec3(0.0, 1.0, 0.0);
 var player;
 var scene;
@@ -66,15 +66,17 @@ function changePointerLock()
 {
     if (document.pointerLockElement === canvas||
         document.mozPointerLockElement === canvas){
-            document.addEventListener("mousemove", moveCallback, false);
-            player.lockedState= true;
+           document.addEventListener("mousemove", moveCallback, false);
+           player.lockedState= true;
        } else {
-            document.removeEventListener("mousemove", moveCallback, false);
-            player.lockedState= false;
-            player.forwardKey= false;
-            player.backwardKey= false;
-            player.leftKey= false;
-            player.rightKey= false;
+           document.removeEventListener("mousemove", moveCallback, false);
+           player.lockedState= false;
+           player.forwardKey= false;
+           player.backwardKey= false;
+           player.leftKey= false;
+           player.rightKey= false;
+           player.upKey= false;
+           player.downKey=false;
        }
 }
 
@@ -127,81 +129,100 @@ function Player(e){
     };
     this.step= function(){
         if (this.lockedState){
-        var coeff= 0.01;
-        var oriz_offset= 0.0;
-        var sagitt_offset= 0.0;
-           if (this.forwardKey){
-              sagitt_offset += coeff;
+            var coeff= 0.06;
+            var oriz_offset= 0.0;
+            var sagitt_offset= 0.0;
+            var vertical_offset= 0.0;
+            if (this.forwardKey){
+                sagitt_offset += coeff;
             }
             if (this.backwardKey){
-              sagitt_offset -= coeff;
+                sagitt_offset -= coeff;
             }
             if (this.rightKey){
-              oriz_offset -= coeff;
+                oriz_offset -= coeff;
             }
             if (this.leftKey){
-              oriz_offset += coeff;
+                oriz_offset += coeff;
             }
-        var pan_angle_rad= this.pan_angle * Math.PI / 180.0;
-        var c_pan  = Math.cos(pan_angle_rad);
-        var s_pan  = Math.sin(pan_angle_rad);
-        var A_pan= math.matrix( [
-            [ c_pan , 0.0 , s_pan , this.eye[0] ],
-            [ 0.0   , 1.0 , 0.0   , this.eye[1] ],
-            [ -s_pan, 0.0 , c_pan , this.eye[2] ],
-            [ 0.0   , 0.0 , 0.0   , 1.0         ]
-        ]);
-        var displacement = [
-            [ oriz_offset   ],
-            [ 0.0           ],
-            [ sagitt_offset ],
-            [ 1.0           ]
-        ];
-        var new_eye = math.multiply( A_pan, displacement);
-        var new_eye_vec = vec3(
-            new_eye.subset( math.index(0 ,0)),
-            new_eye.subset( math.index(1 ,0)),
-            new_eye.subset( math.index(2 ,0))
-        );
-        this.eye= new_eye_vec;
-       }
+            if (this.upKey){
+                vertical_offset += coeff/4.0;
+            }
+            if (this.downKey){
+                vertical_offset -= coeff/3.0;
+            }
+            var pan_angle_rad= this.pan_angle * Math.PI / 180.0;
+            var c_pan  = Math.cos(pan_angle_rad);
+            var s_pan  = Math.sin(pan_angle_rad);
+            var A_pan= math.matrix( [
+                [ c_pan , 0.0 , s_pan , this.eye[0] ],
+                [ 0.0   , 1.0 , 0.0   , this.eye[1] ],
+                [ -s_pan, 0.0 , c_pan , this.eye[2] ],
+                [ 0.0   , 0.0 , 0.0   , 1.0         ]
+            ]);
+            var displacement = [
+                [ oriz_offset   ],
+                [ vertical_offset],
+                [ sagitt_offset ],
+                [ 1.0           ]
+            ];
+            var new_eye = math.multiply( A_pan, displacement);
+            var new_eye_vec = vec3(
+                new_eye.subset( math.index(0 ,0)),
+                new_eye.subset( math.index(1 ,0)),
+                new_eye.subset( math.index(2 ,0))
+            );
+            this.eye= new_eye_vec;
+        }
     };
 
-   this.keyupHook = function(event) {
+    this.keyupHook = function(event) {
         if (this.lockedState) {
-        var keyCode = event.keyCode;
-        if (keyCode == 87) {
-          this.forwardKey = false;
-        }
-        if (keyCode == 83) {
-          this.backwardKey = false;
-        }
-        if (keyCode == 65) {
-          this.leftKey = false;
-       }
-       if (keyCode == 68) {
-         this.rightKey = false;
-       }
-     }
-   };
-
-   this.keydownHook = function(event) {
-          if (this.lockedState) {
             var keyCode = event.keyCode;
             if (keyCode == 87) {
-              this.forwardKey = true;
+                this.forwardKey = false;
             }
             if (keyCode == 83) {
-              this.backwardKey = true;
+                this.backwardKey = false;
             }
             if (keyCode == 65) {
-              this.leftKey = true;
+                this.leftKey = false;
             }
             if (keyCode == 68) {
-              this.rightKey = true;
+                this.rightKey = false;
             }
-          }
-   };
+            if (keyCode == 82){
+                this.upKey = false;
+            }
+            if (keyCode == 70){
+                this.downKey= false;
+            }
+        }
+    };
+
+    this.keydownHook = function(event) {
+        if (this.lockedState) {
+            var keyCode = event.keyCode;
+            if (keyCode == 87) {
+                this.forwardKey = true;
+            }
+            if (keyCode == 83) {
+                this.backwardKey = true;
+            }
+            if (keyCode == 65) {
+                this.leftKey = true;
+            }
+            if (keyCode == 68) {
+                this.rightKey = true;
+            }
+            if (keyCode == 82){
+                this.upKey = true;
+            }
+            if (keyCode == 70){
+                this.downKey= true;
+            }
+        }
+    };
 
 }
 

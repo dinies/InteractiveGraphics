@@ -49,15 +49,17 @@
     		var tree_list= [];
     		tree_list[0] = new Tree(4.0 , 4.0 , 2);
     		tree_list[0].build();
-            var slender= new Slender( -1.0, -1.0,   0.4);
+            var slender= new Slender( -1.0, -1.0,   1.0);
             slender.build();
+          var surroundings= new Surrounding();
+          surroundings.build();
     		this.entities= {
-    			floor : new Floor(),
+    			surrounding : surroundings,
     			trees : tree_list,
     			slender : slender
     		};
     	};
-    	  this.draw= function( gl,  view_matrix, player_eye ){
+    	  this.draw= function( gl,  view_matrix, player_eye){
     		    // 			for each e in entities
     		    // load a color buffer for each entity
     		    // use scale and translation data recovered from entities data struct
@@ -67,7 +69,7 @@
     		    // check if all buffers have been covered
     		    // gl.drawArrays( ... )
 
-    		    this.entities.floor.draw( gl, view_matrix);
+    		    this.entities.surrounding.draw( gl, view_matrix, player_eye);
     		    this.entities.trees[0].draw( gl, view_matrix);
             this.entities.slender.draw( gl, view_matrix, player_eye);
     	};
@@ -239,14 +241,13 @@
             x_offset= this.measures["body_width"]/2 - this.measures["leg_width"]/2;
             this.link_chain.set("r_leg_to_body", translate( x_offset , this.measures["leg_height"], 0.0));
 
-            //translate anca in english
-            this.joints.set("r_anca", new Joint());
+            this.joints.set("r_hip", new Joint());
 
             this.pieces.set("body", new Parallelepiped( this.getDimPiece("body"), this.getTranslPiece("body"),this.col_black, null));
 
             this.link_chain.set("body_to_l_leg", mult( translate( x_offset, 0.0, 0.0), rotate(180.0, [0,0,1])) );
 
-            this.joints.set("l_anca", new Joint());
+            this.joints.set("l_hip", new Joint());
 
             this.pieces.set("l_leg", new Parallelepiped(this.getDimPiece("leg"), this.getTranslPiece("leg") , this.col_black, null));
 
@@ -298,14 +299,14 @@
             this.pieces.get("r_leg").setHierarchyMat(M);
 
             M= mult( M, this.link_chain.get("r_leg_to_body"));
-            M= mult( M, this.joints.get("r_anca").getKinematicMat());
+            M= mult( M, this.joints.get("r_hip").getKinematicMat());
 
             this.pieces.get("body").setHierarchyMat(M);
 
             stack.push(M);
 
             M= mult( M, this.link_chain.get("body_to_l_leg"));
-            M= mult( M, this.joints.get("l_anca").getKinematicMat());
+            M= mult( M, this.joints.get("l_hip").getKinematicMat());
 
             this.pieces.get("l_leg").setHierarchyMat(M);
 
@@ -347,11 +348,29 @@
         };
     };
 
-    function Floor() {
-    	  var colors_array = cubeColors(5);
-    	  this.surface=  new Parallelepiped( [1.0,30.0,30.0], [ 0.0,-1.0,0.0], colors_array, mat4());
-    	  this.draw= function(gl, view_matrix){
-    		    this.surface.draw(gl, view_matrix);
+    function Surrounding() {
+    	  var colors_array ={
+            terrain : cubeColors(3),
+            sky : cubeColors(4)
+        };
+    	  this.surfaces= new Map();
+        this.build= function(){
+            this.surfaces.set("top", new Parallelepiped( [0.1,30.0,30.0], [ 0.0,30.0,0.0], colors_array["sky"], null ));
+            this.surfaces.set("down", new Parallelepiped( [0.1,30.0,30.0], [ 0.0, 0.0, 0.0], colors_array["terrain"], null ));
+            this.surfaces.set("forward", new Parallelepiped( [30.5,30.0,0.1], [ 0.0,15.0,15.0], colors_array["sky"], null ));
+            this.surfaces.set("backward", new Parallelepiped( [30.5,30.0,0.1], [ 0.0,15.0,-15.0], colors_array["sky"], null ));
+            this.surfaces.set("left", new Parallelepiped( [30.5,0.1,30.0], [ 15.0,15.0,0.0], colors_array["sky"], null ));
+            this.surfaces.set("right", new Parallelepiped( [30.5,0.1,30.0], [ -15.0,15.0,0.0], colors_array["sky"], null ));
+        };
+    	  this.draw= function(gl, view_matrix, player_position){
+            var transl= translate([player_position[0], 0.0 , player_position[2]]);
+            console.log(" x "+ player_position[0]+"z "+player_position[2]);
+            var instance_mat=   transl ;
+
+            this.surfaces.forEach( function(value, key){
+                value.setHierarchyMat(instance_mat);
+                value.draw(gl, view_matrix );
+            });
         };
     };
 
