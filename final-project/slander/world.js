@@ -9,10 +9,6 @@ var program;
 
 var entities= {};
 
-
-
-
-
 var projectionMatrix , viewMatrix, modelMatrix, normalMatrix;
 var near = 0.02;
 var far = 52.0;
@@ -253,25 +249,10 @@ window.onload = function init() {
             console.log('The pointer lock status is now unlocked');
         }
     };
-    //list of object to render
     player = new Player(initial_eye);
     scene = new Scene();
     scene.create();
-    // drawFloor();
-    // drawPatch();
-    // colorCube();
 
-    // drawTriangle( [ vertices[6], vertices[5], vertices[0] ] );
-
-    //here i have to build all the tree objects in a list and each tree will have a buffer for vertices
-
-//after
-    // var cBuffer = gl.createBuffer();
-    // gl.bindBuffer( gl.ARRAY_BUFFER, cBuffer );
-    // gl.bufferData( gl.ARRAY_BUFFER, flatten(colorsArray), gl.STATIC_DRAW );
-    // var vColor = gl.getAttribLocation( program, "vColor" );
-    // gl.vertexAttribPointer( vColor, 4, gl.FLOAT, false, 0, 0 );
-    // gl.enableVertexAttribArray( vColor );
     var vBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer);
     gl.bufferData( gl.ARRAY_BUFFER, flatten( scene.pointsArray ), gl.STATIC_DRAW );
@@ -292,7 +273,6 @@ window.onload = function init() {
     var spotlight_specularProduct = mult(spotlight_lightSpecular, materialSpecular);
     var spotlight_diffuseProduct = mult(spotlight_lightDiffuse, materialDiffuse);
 
-    //spotlight
     gl.uniform4fv(gl.getUniformLocation(program, "spotlightAmbientProduct"),
                   flatten(spotlight_ambientProduct));
     gl.uniform4fv(gl.getUniformLocation(program, "spotlightSpecularProduct"),
@@ -303,7 +283,6 @@ window.onload = function init() {
                  spotlight_thetaCone);
     gl.uniform1f(gl.getUniformLocation(program, "spotlight_cutOff"),
                  spotlight_cutOff);
-    //attenuation coefficients
     gl.uniform1f(gl.getUniformLocation(program, "constant_attenuation"),
                  constant_attenuation);
     gl.uniform1f(gl.getUniformLocation(program, "linear_attenuation"),
@@ -356,7 +335,7 @@ window.onload = function init() {
     document.onkeyup = function(e) { player.keyupHook(e); };
 
     render();
-}
+};
 
 var render = function() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -365,10 +344,6 @@ var render = function() {
     modelMatrix = mat4();
     viewMatrix = lookAt(player.eye, at , up);
     projectionMatrix = perspective(fovy, aspect, near, far);
-
-    //check on the distance eye- at checked !!
-    // var dist = Math.sqrt(Math.pow(at[0]-player.eye[0],2) + Math.pow(at[1]-player.eye[1], 2) + Math.pow(at[2]- player.eye[2], 2));
-    // console.log("distance :\n"+dist+"\n");
 
     spotlight_lightPosition= vec4(
                                 player.eye[0],
@@ -382,8 +357,6 @@ var render = function() {
                                             at[1]-player.eye[1],
                                             at[2]- player.eye[2]
                                             ));
-    // spotlight_lightPosition= vec4( 0.5, 0.5, 0.5, 1.0);
-    // spotlight_coneDirection= vec3(-0.3 , -0.3 , -0.3 );
 
     gl.uniform4fv(gl.getUniformLocation(program, "spotlightLightPosition"),
                   flatten(spotlight_lightPosition));
@@ -393,10 +366,6 @@ var render = function() {
                                                "viewMatrix"), false, flatten(viewMatrix) );
     gl.uniformMatrix4fv( gl.getUniformLocation(program,
                                                "projectionMatrix"), false, flatten(projectionMatrix) );
-
-
-    // gl.drawArrays( gl.TRIANGLES, 0, numVertices );
-
 
     scene.draw( gl, viewMatrix, player.eye);
     requestAnimFrame(render);
