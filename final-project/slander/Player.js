@@ -1,5 +1,6 @@
 function Player(e){
     this.eye= e;
+    this.occupancyRay = 0.3;
     this.pan_angle = 0.0;
     this.tilt_angle= 0.0;
     this.forwardKey= false;
@@ -44,9 +45,9 @@ function Player(e){
            this.tilt_angle += inc_const*y_vel;
         }
     };
-    this.step= function(){
+    this.step= function(scene){
         if (this.lockedState){
-            var coeff= 0.06;
+            var coeff= 0.1;
             var oriz_offset= 0.0;
             var sagitt_offset= 0.0;
             var vertical_offset= 0.0;
@@ -89,7 +90,23 @@ function Player(e){
                 new_eye.subset( math.index(1 ,0)),
                 new_eye.subset( math.index(2 ,0))
             );
-            this.eye= new_eye_vec;
+            if (scene.isInsideObjects( new_eye_vec, this.occupancyRay)){
+                displacement = [
+                    [ 0.0 ],
+                    [ 0.0 ],
+                    [ 0.0 ],
+                    [ 1.0 ]
+                ];
+                new_eye = math.multiply( A_pan, displacement);
+                new_eye_vec = vec3(
+                    new_eye.subset( math.index(0 ,0)),
+                    new_eye.subset( math.index(1 ,0)),
+                    new_eye.subset( math.index(2 ,0))
+                );
+                this.eye= new_eye_vec;
+            } else{
+                this.eye= new_eye_vec;
+            }
         }
     };
 

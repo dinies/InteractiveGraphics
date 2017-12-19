@@ -14,7 +14,9 @@ var near = 0.02;
 var far = 52.0;
 var  fovy = 70.0;  // Field-of-view in Y direction angle (in degrees)
 var  aspect;
-var initial_eye = vec3(0.0, 1.0, -0.3);
+var initialY= 3.0;
+var playerOccupancyRay= 1.0;
+var spawnPlayerArea= 7.0;
 const up = vec3(0.0, 1.0, 0.0);
 var player;
 var scene;
@@ -25,18 +27,18 @@ var spotlight_lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
 var spotlight_lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
 
 var spotlight_coneDirection;
-var spotlight_thetaCone = 15.0;
-var spotlight_cutOff= 78.0;
+var spotlight_thetaCone = 65.0;
+var spotlight_cutOff= 70.0;
 
 
-var constant_attenuation= 0.5;
-var linear_attenuation= 0.2;
-var quadratic_attenuation= 0.3;
+var constant_attenuation= 0.001;
+var linear_attenuation= 0.01;
+var quadratic_attenuation= 0.01;
 
 
-var materialAmbient = vec4( 0.6, 0.6, 0.6, 1.0 );
-var materialDiffuse = vec4( 0.4, 0.4, 0.4, 1.0);
-var materialSpecular = vec4( 0.9, 0.9, 0.9, 1.0 );
+var materialAmbient = vec4( 0.2, 0.2, 0.2, 1.0 );
+var materialDiffuse = vec4( 1.0, 1.0, 1.0, 1.0);
+var materialSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
 var materialShininess = 100.0;
 
 var vertexColors = [
@@ -46,9 +48,12 @@ var vertexColors = [
     vec4( 0.0, 1.0, 0.0, 1.0 ),  // green
     vec4( 0.0, 0.0, 1.0, 1.0 ),  // blue
     vec4( 1.0, 0.0, 1.0, 1.0 ),  // magenta
-    vec4( 0.0, 1.0, 1.0, 1.0 ),  // white
+    vec4( 1.0, 1.0, 1.0, 1.0 ),  // white
     vec4( 0.0, 1.0, 1.0, 1.0 ),   // cyan
-    vec4( 1.0, 0.84, 0.0 , 1.0)   //gold
+    vec4( 1.0, 0.84, 0.0 , 1.0),   //gold
+    vec4( 62.0/255.0, 38.0/255.0 , 15.0/255.0, 1.0), //darkBrown
+    vec4( 27.0/255.0, 62.0/255.0 , 15.0/255.0, 1.0), //darkGreen
+    vec4( 11.0/255.0, 63.0/255.0 , 218.0/255.0, 1.0) //sky
 ];
 
 
@@ -73,8 +78,6 @@ function moveCallback(e){
         e.movementY ||
         e.mozMovementY ||
         0;
-    // console.log('mov_X'+ movementX);
-    // console.log('mov_Y'+ movementY);
     player.roll(movementY);
     player.pan(movementX);
 };
@@ -129,9 +132,10 @@ window.onload = function init() {
             console.log('The pointer lock status is now unlocked');
         }
     };
-    player = new Player(initial_eye);
     scene = new Scene();
     scene.create();
+    var freePos =scene.computeFreePosition( spawnPlayerArea, playerOccupancyRay);
+    player = new Player([freePos[0], initialY, freePos[1]]);
 
     var vBuffer = gl.createBuffer();
     gl.bindBuffer( gl.ARRAY_BUFFER, vBuffer);
@@ -219,7 +223,7 @@ window.onload = function init() {
 
 var render = function() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    player.step();
+    player.step(scene);
     var at = player.get_at_in_world();
     modelMatrix = mat4();
     viewMatrix = lookAt(player.eye, at , up);

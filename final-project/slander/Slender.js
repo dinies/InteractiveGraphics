@@ -3,6 +3,7 @@ function Slender( x , z, scale_factor) {
         x: x,
         z: z
     };
+    this.width= 0.3*scale_factor;
     this.hierarchy_transf={};
     this.measures= {
         leg_height: 1.0*scale_factor,
@@ -27,7 +28,7 @@ function Slender( x , z, scale_factor) {
     this.pieces= new Map();
 
     this.link_chain= new Map();
-    this.col_black= cubeColors(8);
+    this.col_black= cubeColors(0);
     this.col_white= cubeColors(6);
 
     this.setPosition= function(newX, newZ){
@@ -48,6 +49,13 @@ function Slender( x , z, scale_factor) {
 
     this.getTranslPiece= function(name){
         return [ 0.0, this.measures[name+"_height"]/2,0.0];
+    };
+
+    this.isInside= function(pos, occupancyRay){
+        var ray = this.width / 2 ;
+        var minimumDistance = ray+occupancyRay;
+        var currentDistance = Math.sqrt( Math.pow( this.position["x"] - pos[0],2) + Math.pow( this.position["z"] - pos[2],2));
+        return currentDistance < minimumDistance;
     };
 
     this.build = function(){
@@ -117,7 +125,6 @@ function Slender( x , z, scale_factor) {
         //right_ankle
         M= mult( M, translate( this.position["x"], 0.0, this.position["z"]) );
         M= mult( M, rotate( pan_angle_deg, [0, 1, 0]));
-        console.log( pan_angle_deg);
         M= mult( M, this.joints.get("r_ankle").getKinematicMat());
 
         this.pieces.get("r_leg").setHierarchyMat(M);

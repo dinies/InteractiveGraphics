@@ -39,23 +39,96 @@ function Scene(){
     	  this.quadVertices( 5, 4, 0, 1);
 
     };
+
+    this.genRandWidth = function( avgWidth ){
+        var variance = avgWidth/6;
+        var willBePositive = Math.random()>= 0.5  ? true : false;
+        var offset= Math.random()*variance;
+        if (willBePositive) {
+            return avgWidth+offset;
+        }else{
+            return avgWidth-offset;
+        }
+    };
+
+    this.genRandCoord = function( extension ){
+        var maxMagnitude = extension/2;
+        var willBePositive = Math.random()>= 0.5  ? true : false;
+        var coord = Math.random()*maxMagnitude;
+        if ( willBePositive){
+            return coord;
+        }else{
+            return -coord;
+        }
+    };
+
+    this.populateForest= function(avgWidth, height, extension) {
+    		var treeList= [];
+        var cilinderDefinition = 4;
+        var finalTreeNumber = 100;
+        var currTreeNumber= 0;
+        var maxIterations = finalTreeNumber * 5;
+        var currIteration= 0;
+
+        var xPos;
+        var yPos = 0.0;
+        var zPos;
+        var width;
+        var isInsideTrees;
+        while (( currTreeNumber < finalTreeNumber) && ( currIteration < maxIterations)){
+            xPos = this.genRandCoord(extension);
+            zPos = this.genRandCoord(extension);
+            width = this.genRandWidth(avgWidth);
+            isInsideTrees = false;
+            treeList.forEach( function(value,key){
+                if ( value.isInside([xPos,yPos,zPos], width)){
+                    isInsideTrees = true;
+                };
+            });
+            if (!isInsideTrees){
+                treeList.push( new Tree( xPos, zPos, cilinderDefinition, width, height ));
+            }
+            currTreeNumber ++;
+            currIteration ++;
+            console.log("currIteration");
+        }
+        return treeList;
+    };
+    this.computeFreePosition= function( extension, occupancyRay){
+        var xPos;
+        var yPos = 0.0;
+        var zPos;
+        var validPosition = false;
+        while (!validPosition){
+            xPos = this.genRandCoord(extension);
+            zPos = this.genRandCoord(extension);
+            validPosition= !this.isInsideObjects( [xPos,yPos,zPos], occupancyRay );
+        }
+        return [xPos, zPos];
+    };
+
+    this.spawnSlender= function(scaleFactor,extension ){
+        var pos  = this.computeFreePosition( extension, scaleFactor/2);
+        return new Slender(pos[0], pos[1], scaleFactor);
+    };
+
+
     this.create= function(){
     		//calculate normals   ----   fill buffer variables
     		// load normal and vertex normals only once (compatible with each entity)
     		this.generateCube();
-        // build all the trees
-    		var tree_list= [];
-    		tree_list[0] = new Tree(4.0 , 4.0 , 2, 4, 2.0, 70.0);
-    		tree_list[0].build();
-        var slender= new Slender( -1.0, -1.0,   1.0);
-        slender.build();
-        var surroundings= new Surroundings(40,70);
-        surroundings.build();
-    		this.entities= {
-    			  surroundings : surroundings,
-    			  trees : tree_list,
-    			  slender : slender
-    		};
+        var sightDist = 20;
+        var areaExtension= sightDist*1.5;
+        var height = 7;
+        var avgTreeWidth = 1.0;
+        this.entities['surroundings']=  new Surroundings(height,sightDist*5);
+        this.entities['trees']=  this.populateForest(avgTreeWidth, height, areaExtension);
+        this.entities['slender']=  this.spawnSlender(2.0,areaExtension);
+        this.entities.surroundings.build();
+    		this.entities.trees.forEach( function(value,key){
+            value.build();
+        });
+        this.entities.slender.build();
     };
     this.draw= function( gl,  view_matrix, player_eye){
     		// 			for each e in entities
@@ -68,8 +141,22 @@ function Scene(){
     		// gl.drawArrays( ... )
 
     		this.entities.surroundings.draw( gl, view_matrix, player_eye);
-    		this.entities.trees[0].draw( gl, view_matrix);
+    		this.entities.trees.forEach( function(value,key){
+            value.draw(gl, view_matrix, player_eye);
+        });
         this.entities.slender.draw( gl, view_matrix, player_eye);
+    };
+    this.isInsideObjects= function( pos, occupancyRay ){
+        var isInside = false;
+        this.entities.trees.forEach( function(value,key){
+            if ( value.isInside(pos, occupancyRay)){
+                isInside = true;
+            };
+        });
+        if ((this.entities.slender)&&( this.entities.slender.isInside(pos, occupancyRay))){
+            isInside = true;
+        }
+        return isInside;
     };
 };
 

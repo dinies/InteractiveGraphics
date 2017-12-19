@@ -1,9 +1,8 @@
-function Tree(x,z, layers, definition, width, height){
+function Tree(x,z,definition, width, height){
     this.x= x;
     this.z= z;
     this.width= width;
     this.height= height;
-    this.layers= layers;
     this.root= new Node();
     this.definition= definition;
 
@@ -16,7 +15,7 @@ function Tree(x,z, layers, definition, width, height){
                 rot_mat= mult( rot_mat, rotation);
             };
             rot_mat= mult( rot_mat, translate([-this.x, 0.0, -this.z]));
-            this.root.values.set("piece n"+i,  new Parallelepiped( [this.height, this.width, this.width], [this.x, this.height/2 , this.z ], cubeColors(2),rot_mat));
+            this.root.values.set("piece n"+i,  new Parallelepiped( [this.height, this.width, this.width], [this.x, this.height/2 , this.z ], cubeColors(9),rot_mat));
         };
     };
     this.draw= function(gl, view_matrix){
@@ -28,5 +27,11 @@ function Tree(x,z, layers, definition, width, height){
             curr_node.draw(gl,view_matrix);
             node_stack= curr_node.getChildren().concat(node_stack);
         }
+    };
+    this.isInside= function(pos, occupancyRay){
+        var ray = this.width / 2 ;
+        var minimumDistance = ray+occupancyRay;
+        var currentDistance = Math.sqrt( Math.pow( this.x - pos[0],2) + Math.pow( this.z - pos[2],2));
+        return currentDistance < minimumDistance;
     };
 };
