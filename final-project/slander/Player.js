@@ -45,7 +45,7 @@ function Player(e){
            this.tilt_angle += inc_const*y_vel;
         }
     };
-    this.step= function(scene){
+    this.step= function(scene, debugCam){
         if (this.lockedState){
             var coeff= 0.1;
             var oriz_offset= 0.0;
@@ -63,11 +63,11 @@ function Player(e){
             if (this.leftKey){
                 oriz_offset += coeff;
             }
-            if (this.upKey){
-                vertical_offset += coeff/4.0;
+            if ((debugCam=="true")&&(this.upKey)){
+                vertical_offset += coeff/2.0;
             }
-            if (this.downKey){
-                vertical_offset -= coeff/3.0;
+            if ((debugCam=="true")&&(this.downKey)){
+                vertical_offset -= coeff/2.0;
             }
             var pan_angle_rad= this.pan_angle * Math.PI / 180.0;
             var c_pan  = Math.cos(pan_angle_rad);

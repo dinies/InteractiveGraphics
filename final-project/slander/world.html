@@ -3,6 +3,7 @@
     <head>
         <link rel="stylesheet" type="text/css" href="style.css">
         <meta charset="utf-8"/>
+        <title>SlenderBot</title>
     </head>
     <script id="vertex-shader" type="x-shader/x-vertex">
      precision mediump float;
@@ -72,8 +73,6 @@
          vec3 C= normalize(spotlight_coneDirection);
          //s= vector from the spotlight source towards the surface
          vec3 s= -L_spotlight_for_frag;
-         //check if the cone direction and the direction towards the surface point are concordant
-         //check if the overall direction is concorde, otherwise the light cone will be pointed in the other direction w.t.r. the surface.
          // if( dot(s,C) <= 0.0){
          //     spotlight_intensity_multiplier = 0.0;
          // }

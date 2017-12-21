@@ -3,24 +3,38 @@
 var canvas;
 var gl;
 
-var numVertices  = 48;
+var numVertices  = 36;
 var program;
 
+var flagDebugCam = sessionStorage.debugCam;
+var videoQualityCoeff;
+switch(sessionStorage.videoSetting) {
+case "L":
+    videoQualityCoeff = 2.0;
+    break;
+case "M":
+    videoQualityCoeff = 4.0;
+    break;
+case "H":
+    videoQualityCoeff = 8.0;
+    break;
+default:
+    videoQualityCoeff = 16.0;
+}
 
 var entities= {};
 
 var projectionMatrix , viewMatrix, modelMatrix, normalMatrix;
 var near = 0.02;
-var far = 52.0;
-var  fovy = 70.0;  // Field-of-view in Y direction angle (in degrees)
-var  aspect;
+var far = 30.0*videoQualityCoeff;
+var fovy = 70.0;  // Field-of-view in Y direction angle (in degrees)
+var aspect;
 var initialY= 3.0;
 var playerOccupancyRay= 1.0;
 var spawnPlayerArea= 7.0;
 const up = vec3(0.0, 1.0, 0.0);
 var player;
 var scene;
-
 var spotlight_lightPosition;
 var spotlight_lightAmbient = vec4(1.0, 1.0, 1.0, 1.0 );
 var spotlight_lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
@@ -28,15 +42,20 @@ var spotlight_lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
 
 var spotlight_coneDirection;
 var spotlight_thetaCone = 65.0;
-var spotlight_cutOff= 70.0;
+var spotlight_cutOff= 40.0;
 
 
 var constant_attenuation= 0.001;
 var linear_attenuation= 0.01;
 var quadratic_attenuation= 0.01;
 
+var materialAmbient;
+if(flagDebugCam == "true"){
+    materialAmbient = vec4( 0.9, 0.9, 0.9, 1.0 );
+}else{
+    materialAmbient = vec4( 0.2, 0.2, 0.2, 1.0 );
+}
 
-var materialAmbient = vec4( 0.2, 0.2, 0.2, 1.0 );
 var materialDiffuse = vec4( 1.0, 1.0, 1.0, 1.0);
 var materialSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
 var materialShininess = 100.0;
@@ -133,7 +152,7 @@ window.onload = function init() {
         }
     };
     scene = new Scene();
-    scene.create();
+    scene.create(videoQualityCoeff);
     var freePos =scene.computeFreePosition( spawnPlayerArea, playerOccupancyRay);
     player = new Player([freePos[0], initialY, freePos[1]]);
 
@@ -175,43 +194,6 @@ window.onload = function init() {
                  quadratic_attenuation);
     gl.uniform1f(gl.getUniformLocation(program, "shininess"),
                  materialShininess);
-    // document.getElementById("zFarSlider").onchange = function(event) {
-    //     far = event.target.value;
-    // };
-    // document.getElementById("zNearSlider").onchange = function(event) {
-    //     near = event.target.value;
-    // };
-    // document.getElementById("xcoordSlider").onchange = function(event) {
-    //    eye[0] = parseFloat(event.target.value);
-    //    console.log(eye);
-    // };
-    // document.getElementById("ycoordSlider").onchange = function(event) {
-    //     eye[1] = parseFloat(event.target.value);
-    //     console.log(eye);
-    // };
-    // document.getElementById("zcoordSlider").onchange = function(event) {
-    //     eye[2] = parseFloat(event.target.value);
-    //     console.log(eye);
-    // };
-    // document.getElementById("aspectSlider").onchange = function(event) {
-    //     aspect = event.target.value;
-    // };
-    // document.getElementById("fovSlider").onchange = function(event) {
-    //     fovy = event.target.value;
-    // };
-
-    // document.getElementById("x_at_coordSlider").onchange = function(event) {
-    //    at[0] = parseFloat(event.target.value);
-    //    console.log(at);
-    // };
-    // document.getElementById("y_at_coordSlider").onchange = function(event) {
-    //     at[1] = parseFloat(event.target.value);
-    //     console.log(at);
-    // };
-    // document.getElementById("z_at_coordSlider").onchange = function(event) {
-    //     at[2] = parseFloat(event.target.value);
-    //     console.log(at);
-    // };
 
     document.addEventListener('pointerlockchange',changePointerLock, false);
     document.addEventListener('mozpointerlockchange',changePointerLock , false);
@@ -223,7 +205,7 @@ window.onload = function init() {
 
 var render = function() {
     gl.clear( gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    player.step(scene);
+    player.step(scene,flagDebugCam);
     var at = player.get_at_in_world();
     modelMatrix = mat4();
     viewMatrix = lookAt(player.eye, at , up);

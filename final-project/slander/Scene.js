@@ -62,10 +62,10 @@ function Scene(){
         }
     };
 
-    this.populateForest= function(avgWidth, height, extension) {
+    this.populateForest= function(avgWidth, height, extension,treeDefinition, treeNum) {
     		var treeList= [];
-        var cilinderDefinition = 4;
-        var finalTreeNumber = 100;
+        var cilinderDefinition = treeDefinition;
+        var finalTreeNumber = treeNum;
         var currTreeNumber= 0;
         var maxIterations = finalTreeNumber * 5;
         var currIteration= 0;
@@ -90,7 +90,6 @@ function Scene(){
             }
             currTreeNumber ++;
             currIteration ++;
-            console.log("currIteration");
         }
         return treeList;
     };
@@ -113,16 +112,18 @@ function Scene(){
     };
 
 
-    this.create= function(){
-    		//calculate normals   ----   fill buffer variables
+    this.create= function(videoQualityCoeff){
     		// load normal and vertex normals only once (compatible with each entity)
     		this.generateCube();
+
+        var treeDefinition= 2.0 + videoQualityCoeff/2;
+        var treeNumber = 50 * videoQualityCoeff;
         var sightDist = 20;
-        var areaExtension= sightDist*1.5;
+        var areaExtension= sightDist * videoQualityCoeff;
         var height = 7;
         var avgTreeWidth = 1.0;
         this.entities['surroundings']=  new Surroundings(height,sightDist*5);
-        this.entities['trees']=  this.populateForest(avgTreeWidth, height, areaExtension);
+    this.entities['trees']=  this.populateForest(avgTreeWidth, height, areaExtension, treeDefinition,treeNumber);
         this.entities['slender']=  this.spawnSlender(2.0,areaExtension);
         this.entities.surroundings.build();
     		this.entities.trees.forEach( function(value,key){
