@@ -132,14 +132,10 @@ function Scene(){
         this.entities.slender.build();
     };
     this.draw= function( gl,  view_matrix, player_eye){
-    		// 			for each e in entities
     		// load a color buffer for each entity
-    		// use scale and translation data recovered from entities data struct
     		// compute model matrix
     		// then model view plus normal_matrix
     		// load gl matrix variables
-    		// check if all buffers have been covered
-    		// gl.drawArrays( ... )
 
     		this.entities.surroundings.draw( gl, view_matrix, player_eye);
     		this.entities.trees.forEach( function(value,key){

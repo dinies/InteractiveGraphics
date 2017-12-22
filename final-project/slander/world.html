@@ -62,6 +62,7 @@
      uniform float quadratic_attenuation;
      varying vec3 pos_for_frag;
      varying vec3 N_for_frag;
+     uniform bool flagLightOff;
      void
      main()
      {
@@ -102,7 +103,9 @@
          float attenuation_spotlight= 1.0/ ( constant_attenuation + (linear_attenuation* dist_norm_spotlight) + (quadratic_attenuation* pow(dist_norm_spotlight, 2.0)) );
          vec4 spotlightColor = spotlight_ambient + (spotlight_intensity_multiplier * attenuation_spotlight *(spotlight_diffuse + spotlight_specular));
          vec4 finalColor= vec4(0.0,0.0,0.0,1.0);
-         finalColor= finalColor + spotlightColor;
+         if(!flagLightOff){
+             finalColor= finalColor + spotlightColor;
+         }
          finalColor.a=1.0;
          gl_FragColor = (finalColor * fColor) ;
      }

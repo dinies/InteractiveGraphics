@@ -7,6 +7,7 @@ function Player(e){
     this.backwardKey=false;
     this.leftKey=false;
     this.rightKey=false;
+    this.spaceKey= false;
     this.lockedState= false;
     this.get_at_in_world= function(){
         var pan_angle_rad= this.pan_angle * Math.PI / 180.0;
@@ -154,6 +155,9 @@ function Player(e){
             }
             if (keyCode == 70){
                 this.downKey= true;
+            }
+            if (keyCode == 32){
+                this.spaceKey= !this.spaceKey;
             }
         }
     };

@@ -41,13 +41,13 @@ var spotlight_lightDiffuse = vec4( 1.0, 1.0, 1.0, 1.0 );
 var spotlight_lightSpecular = vec4( 1.0, 1.0, 1.0, 1.0 );
 
 var spotlight_coneDirection;
-var spotlight_thetaCone = 65.0;
+var spotlight_thetaCone = 80.0;
 var spotlight_cutOff= 40.0;
 
 
 var constant_attenuation= 0.001;
-var linear_attenuation= 0.01;
-var quadratic_attenuation= 0.01;
+var linear_attenuation= 0.001;
+var quadratic_attenuation= 0.005;
 
 var materialAmbient;
 if(flagDebugCam == "true"){
@@ -70,9 +70,9 @@ var vertexColors = [
     vec4( 1.0, 1.0, 1.0, 1.0 ),  // white
     vec4( 0.0, 1.0, 1.0, 1.0 ),   // cyan
     vec4( 1.0, 0.84, 0.0 , 1.0),   //gold
-    vec4( 62.0/255.0, 38.0/255.0 , 15.0/255.0, 1.0), //darkBrown
-    vec4( 27.0/255.0, 62.0/255.0 , 15.0/255.0, 1.0), //darkGreen
-    vec4( 11.0/255.0, 63.0/255.0 , 218.0/255.0, 1.0) //sky
+    vec4( 79.0/255.0, 51.0/255.0 , 23.0/255.0, 1.0), //darkBrown
+    vec4( 11.0/255.0, 65.0/255.0 , 11.0/255.0, 1.0), //darkGreen
+    vec4( 0.0/255.0, 38.0/255.0 , 53.0/255.0, 1.0) //sky
 ];
 
 
@@ -232,6 +232,9 @@ var render = function() {
                                                "viewMatrix"), false, flatten(viewMatrix) );
     gl.uniformMatrix4fv( gl.getUniformLocation(program,
                                                "projectionMatrix"), false, flatten(projectionMatrix) );
+
+    gl.uniform1f(gl.getUniformLocation(program, "flagLightOff"),
+                 player.spaceKey);
 
     scene.draw( gl, viewMatrix, player.eye);
     requestAnimFrame(render);
