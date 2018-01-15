@@ -236,7 +236,10 @@ var render = function() {
     gl.uniform1f(gl.getUniformLocation(program, "flagLightOff"),
                  player.spaceKey);
 
-    scene.draw( gl, viewMatrix, player.eye);
+    var spaceKeyPressedFlag = scene.draw( gl, viewMatrix, player.eye , player.spaceKey);
+    if (spaceKeyPressedFlag != player.spaceKey){
+        player.spaceKey = spaceKeyPressedFlag;
+    }
     requestAnimFrame(render);
 
 };

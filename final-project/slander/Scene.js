@@ -2,6 +2,12 @@ function Scene(){
     this.pointsArray = [];
     this.normalsArray= [];
     this.entities= {};
+    this.areaExtension= 0.0;
+    this.animationTime= 0.0;
+    this.animationPhases = {
+        lightOff : false,
+        started: false
+    };
 
     this.vertices = [
         vec4( -0.5, -0.5,  0.5, 1.0 ),
@@ -119,29 +125,115 @@ function Scene(){
         var treeDefinition= 2.0 + videoQualityCoeff/2;
         var treeNumber = 50 * videoQualityCoeff;
         var sightDist = 20;
-        var areaExtension= sightDist * videoQualityCoeff;
-        var height = 7;
+        this.areaExtension= sightDist * videoQualityCoeff;
+        var height = 11;
         var avgTreeWidth = 1.0;
         this.entities['surroundings']=  new Surroundings(height,sightDist*5);
-    this.entities['trees']=  this.populateForest(avgTreeWidth, height, areaExtension, treeDefinition,treeNumber);
-        this.entities['slender']=  this.spawnSlender(2.0,areaExtension);
+    this.entities['trees']=  this.populateForest(avgTreeWidth, height, this.areaExtension, treeDefinition,treeNumber);
+        this.entities['slender']=  this.spawnSlender(2.0,this.areaExtension); //extend the height of slenderman TODO
         this.entities.surroundings.build();
     		this.entities.trees.forEach( function(value,key){
             value.build();
         });
         this.entities.slender.build();
     };
-    this.draw= function( gl,  view_matrix, player_eye){
+    this.draw= function( gl,  view_matrix, player_eye, spaceKey){
     		// load a color buffer for each entity
     		// compute model matrix
     		// then model view plus normal_matrix
     		// load gl matrix variables
+        var spaceKeyPressedFlag = spaceKey;
 
     		this.entities.surroundings.draw( gl, view_matrix, player_eye);
     		this.entities.trees.forEach( function(value,key){
             value.draw(gl, view_matrix, player_eye);
         });
+
+
+
+        var states = {
+            false : {
+                false: "standard",
+                true: "animation"
+            },
+            true : {
+                false: "preAnimation",
+                true: "postAnimation"
+            }
+        };
+
+        switch(states[this.animationPhases.lightOff ][ this.animationPhases.started]) {
+        case "preAnimation":
+            if (!spaceKey){
+                this.animationPhases.lightOff = false;
+                this.animationPhases.started= true;
+            };
+            break;
+        case "animation":
+            this.entities.slender.animate(this.animationTime );
+            this.animationTime += 1.0;
+            // animation ongoing
+            if ( this.animationTime > 100.0){
+                this.animationPhases.lightOff = true;
+                spaceKeyPressedFlag = true;//turn off the light
+                var newPos= this.computeFreePosition(this.areaExtension,1.0);
+                this.entities['slender'].setPosition(newPos[0], newPos[1]);
+                this.animationTime = 0.0;
+            };
+            break;
+        case "postAnimation":
+            if (!spaceKey){
+                this.animationPhases.lightOff = false;
+                this.animationPhases.started= false;
+            };
+            break;
+        default:
+            if (spaceKey){
+                this.animationPhases.lightOff = true;
+            };
+        };
+
+        // if ( !this.animationPhases.lightOff && !this.animationPhases.started){
+
+        //     if (spaceKey){
+        //         this.animationPhases.lightOff = true;
+        //     };
+
+        // };
+        // if ( this.animationPhases.lightOff && !this.animationPhases.started){
+
+        //     if (!spaceKey){
+        //         this.animationPhases.lightOff = false;
+        //         this.animationPhases.started= true;
+        //     };
+
+        // };
+        // if ( !this.animationPhases.lightOff && this.animationPhases.started){
+
+        //     this.entities.slender.animate(this.animationTime );
+        //     this.animationTime += 1.0;
+        //     // animation ongoing
+        //     if ( this.animationTime > 100.0){
+        //         this.animationPhases.lightOff = true;
+        //         spaceKeyPressedFlag = true;//turn off the light
+        //         var newPos= this.computeFreePosition(this.areaExtension,1.0);
+        //         this.entities['slender'].setPosition(newPos[0], newPos[1]);
+        //         this.animationTime = 0.0;
+        //     };
+
+        // };
+        // if ( this.animationPhases.lightOff && this.animationPhases.started){
+        //     // light is off waiting that player turns it on
+        //     if (spaceKey){
+        //         this.animationPhases.lightOff = false;
+        //         this.animationPhases.started= false;
+
+        //     };
+        // };
+
         this.entities.slender.draw( gl, view_matrix, player_eye);
+
+        return spaceKeyPressedFlag;
     };
     this.isInsideObjects= function( pos, occupancyRay ){
         var isInside = false;

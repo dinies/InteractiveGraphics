@@ -113,6 +113,7 @@ function Slender( x , z, scale_factor) {
         this.pieces.set("l_hand", new Parallelepiped( this.getDimPiece("hand"), this.getTranslPiece("hand"), this.col_white, null));
 
 
+        this.setRangesAnimation();
     };
     this.draw=function(gl, view_matrix, player_eye){
         //use player_eye to compute the right pan_angle
@@ -176,6 +177,29 @@ function Slender( x , z, scale_factor) {
         }
                            );
 
+    };
+
+    this.setRangesAnimation = function(){
+        this.joints.get("r_ankle").setRange( [ 0 ,  45 ]);
+        this.joints.get("r_hip").setRange( [ 0 ,  30 ]);
+        this.joints.get("neck").setRange( [ 0 ,  -15 ]);
+        this.joints.get("l_hip").setRange( [ 0 ,  60 ]);
+        this.joints.get("r_shoulder").setRange( [ 0 ,  20 ]);
+        this.joints.get("l_shoulder").setRange( [ 0 ,  30 ]);
+        this.joints.get("r_wrist").setRange( [ 0 ,  20 ]);
+        this.joints.get("l_wrist").setRange( [ 0 ,  20 ]);
+    };
+    this.resetJoints= function(){
+        this.joints.forEach(function(value, key) {
+            value.setAngle(0);
+        });
+    };
+
+    this.animate=function(time){
+        var currPoint = time/100.0;
+        this.joints.forEach(function(value, key) {
+            value.animate(currPoint);
+        });
     };
 };
 
