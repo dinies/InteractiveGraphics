@@ -3,22 +3,23 @@ function Slender( x , z, scale_factor) {
         x: x,
         z: z
     };
+    this.scaleFactor= scale_factor;
     this.width= 0.3*scale_factor;
     this.hierarchy_transf={};
     this.measures= {
-        leg_height: 1.0*scale_factor,
+        leg_height: 1.4*scale_factor,
         leg_width: 0.2*scale_factor,
         leg_depth: 0.15*scale_factor,
-        body_height: 0.7*scale_factor,
+        body_height: 0.9*scale_factor,
         body_width: 0.5*scale_factor,
         body_depth: 0.2*scale_factor,
-        head_height: 0.25*scale_factor,
+        head_height: 0.3*scale_factor,
         head_width: 0.2*scale_factor,
         head_depth: 0.15*scale_factor,
-        arm_height: 0.9*scale_factor,
-        arm_width: 0.15*scale_factor,
+        arm_height: 1.3*scale_factor,
+        arm_width: 0.18*scale_factor,
         arm_depth: 0.1*scale_factor,
-        hand_height: 0.1*scale_factor,
+        hand_height: 0.14*scale_factor,
         hand_width: 0.1*scale_factor,
         hand_depth: 0.1*scale_factor
     };
@@ -180,12 +181,12 @@ function Slender( x , z, scale_factor) {
     };
 
     this.setRangesAnimation = function(){
-        this.joints.get("r_ankle").setRange( [ 0 ,  45 ]);
-        this.joints.get("r_hip").setRange( [ 0 ,  30 ]);
-        this.joints.get("neck").setRange( [ 0 ,  -15 ]);
-        this.joints.get("l_hip").setRange( [ 0 ,  60 ]);
-        this.joints.get("r_shoulder").setRange( [ 0 ,  20 ]);
-        this.joints.get("l_shoulder").setRange( [ 0 ,  30 ]);
+        this.joints.get("r_ankle").setRange( [ 0 ,  25 ]);
+        this.joints.get("r_hip").setRange( [ 0 ,  -25 ]);
+        this.joints.get("neck").setRange( [ 0 ,  -5 ]);
+        this.joints.get("l_hip").setRange( [ 0 ,  40 ]);
+        this.joints.get("r_shoulder").setRange( [ 0 ,  110 ]);
+        this.joints.get("l_shoulder").setRange( [ 0 ,  110 ]);
         this.joints.get("r_wrist").setRange( [ 0 ,  20 ]);
         this.joints.get("l_wrist").setRange( [ 0 ,  20 ]);
     };

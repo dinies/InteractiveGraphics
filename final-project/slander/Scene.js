@@ -113,7 +113,7 @@ function Scene(){
     };
 
     this.spawnSlender= function(scaleFactor,extension ){
-        var pos  = this.computeFreePosition( extension, scaleFactor/2);
+        var pos  = this.computeFreePosition( extension, scaleFactor*2.5);
         return new Slender(pos[0], pos[1], scaleFactor);
     };
 
@@ -172,12 +172,13 @@ function Scene(){
         case "animation":
             this.entities.slender.animate(this.animationTime );
             this.animationTime += 1.0;
-            // animation ongoing
             if ( this.animationTime > 100.0){
                 this.animationPhases.lightOff = true;
                 spaceKeyPressedFlag = true;//turn off the light
-                var newPos= this.computeFreePosition(this.areaExtension,1.0);
+                var scaleFactor = this.entities['slender'].scaleFactor;
+                var newPos= this.computeFreePosition(this.areaExtension,scaleFactor*2.5);
                 this.entities['slender'].setPosition(newPos[0], newPos[1]);
+                this.entities['slender'].resetJoints();
                 this.animationTime = 0.0;
             };
             break;
@@ -192,44 +193,6 @@ function Scene(){
                 this.animationPhases.lightOff = true;
             };
         };
-
-        // if ( !this.animationPhases.lightOff && !this.animationPhases.started){
-
-        //     if (spaceKey){
-        //         this.animationPhases.lightOff = true;
-        //     };
-
-        // };
-        // if ( this.animationPhases.lightOff && !this.animationPhases.started){
-
-        //     if (!spaceKey){
-        //         this.animationPhases.lightOff = false;
-        //         this.animationPhases.started= true;
-        //     };
-
-        // };
-        // if ( !this.animationPhases.lightOff && this.animationPhases.started){
-
-        //     this.entities.slender.animate(this.animationTime );
-        //     this.animationTime += 1.0;
-        //     // animation ongoing
-        //     if ( this.animationTime > 100.0){
-        //         this.animationPhases.lightOff = true;
-        //         spaceKeyPressedFlag = true;//turn off the light
-        //         var newPos= this.computeFreePosition(this.areaExtension,1.0);
-        //         this.entities['slender'].setPosition(newPos[0], newPos[1]);
-        //         this.animationTime = 0.0;
-        //     };
-
-        // };
-        // if ( this.animationPhases.lightOff && this.animationPhases.started){
-        //     // light is off waiting that player turns it on
-        //     if (spaceKey){
-        //         this.animationPhases.lightOff = false;
-        //         this.animationPhases.started= false;
-
-        //     };
-        // };
 
         this.entities.slender.draw( gl, view_matrix, player_eye);
 
