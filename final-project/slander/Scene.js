@@ -130,7 +130,7 @@ function Scene(){
         var scaleFactor = 2.3;
         this.entities['surroundings']=  new Surroundings(height,sightDist*5);
         this.entities['trees']=  this.populateForest(avgTreeWidth, height, this.areaExtension, treeDefinition,treeNumber);
-        this.entities['slender']=  this.spawnSlender(scaleFactor,this.areaExtension); //extend the height of slenderman TODO
+        this.entities['slender']=  this.spawnSlender(scaleFactor,this.areaExtension); 
         this.entities.surroundings.build();
     		this.entities.trees.forEach( function(value,key){
             value.build();
