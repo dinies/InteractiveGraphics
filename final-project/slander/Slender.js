@@ -7,21 +7,21 @@ function Slender( x , z, scale_factor) {
     this.width= 0.3*scale_factor;
     this.hierarchy_transf={};
     this.measures= {
-        leg_height: 1.4*scale_factor,
+        leg_height: 1.8*scale_factor,
         leg_width: 0.2*scale_factor,
         leg_depth: 0.15*scale_factor,
-        body_height: 0.9*scale_factor,
+        body_height: 1.3*scale_factor,
         body_width: 0.5*scale_factor,
         body_depth: 0.2*scale_factor,
-        head_height: 0.3*scale_factor,
-        head_width: 0.2*scale_factor,
-        head_depth: 0.15*scale_factor,
-        arm_height: 1.3*scale_factor,
-        arm_width: 0.18*scale_factor,
-        arm_depth: 0.1*scale_factor,
-        hand_height: 0.14*scale_factor,
-        hand_width: 0.1*scale_factor,
-        hand_depth: 0.1*scale_factor
+        head_height: 0.33*scale_factor,
+        head_width: 0.22*scale_factor,
+        head_depth: 0.25*scale_factor,
+        arm_height: 1.6*scale_factor,
+        arm_width: 0.2*scale_factor,
+        arm_depth: 0.15*scale_factor,
+        hand_height: 0.19*scale_factor,
+        hand_width: 0.14*scale_factor,
+        hand_depth: 0.14*scale_factor
     };
 
     this.joints= new Map();

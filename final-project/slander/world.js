@@ -136,7 +136,6 @@ window.onload = function init() {
 
    	gl.clearColor( 1.0, 1.0, 1.0, 1.0 );
    	gl.enable(gl.DEPTH_TEST);
-    //  Load shaders and initialize attribute buffers
     program = initShaders( gl, "vertex-shader", "fragment-shader" );
     gl.useProgram( program );
 

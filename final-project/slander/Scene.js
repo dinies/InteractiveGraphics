@@ -119,7 +119,6 @@ function Scene(){
 
 
     this.create= function(videoQualityCoeff){
-    		// load normal and vertex normals only once (compatible with each entity)
     		this.generateCube();
 
         var treeDefinition= 2.0 + videoQualityCoeff/2;
@@ -128,9 +127,10 @@ function Scene(){
         this.areaExtension= sightDist * videoQualityCoeff;
         var height = 11;
         var avgTreeWidth = 1.0;
+        var scaleFactor = 2.3;
         this.entities['surroundings']=  new Surroundings(height,sightDist*5);
-    this.entities['trees']=  this.populateForest(avgTreeWidth, height, this.areaExtension, treeDefinition,treeNumber);
-        this.entities['slender']=  this.spawnSlender(2.0,this.areaExtension); //extend the height of slenderman TODO
+        this.entities['trees']=  this.populateForest(avgTreeWidth, height, this.areaExtension, treeDefinition,treeNumber);
+        this.entities['slender']=  this.spawnSlender(scaleFactor,this.areaExtension); //extend the height of slenderman TODO
         this.entities.surroundings.build();
     		this.entities.trees.forEach( function(value,key){
             value.build();
